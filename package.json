@@ -1,6 +1,6 @@
 {
   "name": "next-cachex",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "1. Project Goal - provide a distributed, shared cache handler for Next.js (13+), fully compatible with both App Router (app/) and Pages - - router (pages/), designed for multi-pod environments (Kubernetes, ECS, Vercel, etc.). - primary backend at launch: Redis (support for more cache backends in future). - solve production-scale cache problems: thundering herd, consistency, TTL, namespacing, easy API for developers.",
   "main": "index.js",
   "directories": {
