@@ -43,6 +43,12 @@ export interface CacheBackend<T = unknown> {
    * @param key - The lock key
    */
   unlock(key: string): Promise<void>;
+
+  /**
+   * Clear all cache entries for the current backend/prefix/namespace.
+   * Optional: not all backends may support this.
+   */
+  clear?(): Promise<void>;
 }
 
 /**
