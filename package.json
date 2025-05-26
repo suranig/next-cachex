@@ -23,6 +23,10 @@
   "homepage": "https://github.com/suranig/next-cachex#readme",
   "devDependencies": {
     "@types/node": "^22.15.21",
+    "eslint": "^9.27.0",
+    "husky": "^9.1.7",
+    "prettier": "^3.5.3",
+    "typedoc": "^0.28.5",
     "typescript": "^5.8.3",
     "vitest": "^3.1.4"
   },
