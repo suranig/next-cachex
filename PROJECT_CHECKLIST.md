@@ -22,9 +22,9 @@
 - [x] Implement backend-agnostic cache handler (`fetchWithCache`)
 - [x] Implement handler factory (`createCacheHandler`)
 - [x] Implement Redis backend plugin (in `src/backends/`)
-- [ ] Implement error types (e.g., `CacheTimeoutError`)
+- [x] Implement error types (e.g., `CacheTimeoutError`)
 - [x] Implement key prefixing/namespacing logic
-- [ ] Implement distributed lock logic (atomic, with TTL)
+- [x] Implement distributed lock logic (atomic, with TTL)
 - [x] Implement logging (pluggable logger)
 - [ ] Implement stale cache fallback (optional)
 - [ ] Implement instrumentation/build hooks
