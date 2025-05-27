@@ -5,6 +5,7 @@ import { createDefaultBackend } from '../backends';
 // Create a singleton cache handler with default Redis backend
 const defaultHandler = createCacheHandler({
   backend: createDefaultBackend(),
+  prefix: 'next-cachex',
 });
 
 /**
@@ -37,6 +38,7 @@ export async function fetchWithCache<T>(
     const tempHandler = createCacheHandler({
       backend: options.backend,
       logger: options.logger,
+      prefix: 'next-cachex',
     });
     return tempHandler.fetch(key, fetcher, options);
   }

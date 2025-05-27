@@ -6,5 +6,8 @@ export default defineConfig({
       reporter: ['text', 'lcov'],
       exclude: ['**/test/**', '**/examples/**', '**/node_modules/**'],
     },
+    environment: 'node',
+    include: ['test/**/*.test.ts'],
+    globals: true,
   },
 }); 
