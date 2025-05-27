@@ -20,7 +20,7 @@ const noopLogger: CacheLogger = {
 /**
  * Default fetch options
  */
-const DEFAULT_FETCH_OPTIONS: Required<CacheFetchOptions> = {
+const DEFAULT_FETCH_OPTIONS = {
   ttl: 300, // 5 minutes
   lockTimeout: 5000, // 5 seconds
   staleTtl: 3600, // 1 hour
