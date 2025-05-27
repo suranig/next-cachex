@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createCacheHandler } from '../../src/createCacheHandler';
+import { createCacheHandler } from '../../src/cache/createCacheHandler';
 import { CacheBackend, CacheHandler, CacheTimeoutError } from '../../src/types';
 
 // Simple in-memory backend for testing

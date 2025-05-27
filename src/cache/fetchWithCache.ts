@@ -32,6 +32,16 @@ export async function fetchWithCache<T>(
   fetcher: () => Promise<T>,
   options?: CacheFetchOptions,
 ): Promise<T> {
+  // For testing: if a backend is provided in options, create a temporary handler
+  if (options?.backend) {
+    const tempHandler = createCacheHandler({
+      backend: options.backend,
+      logger: options.logger,
+    });
+    return tempHandler.fetch(key, fetcher, options);
+  }
+  
+  // Use the default handler
   return defaultHandler.fetch(key, fetcher, options);
 }
 

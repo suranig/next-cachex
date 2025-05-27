@@ -1,41 +1,57 @@
 /**
- * next-cachex: Error Types
- * Specific error types for better error handling and DX.
+ * Custom error classes for next-cachex
+ * All error types are exported for consumer DX and error handling
  * @packageDocumentation
  */
 
 /**
- * Base error class for all cache-related errors.
+ * Base error class for all cache errors
  */
 export class CacheError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'CacheError';
-    // Maintains proper stack trace in V8 (only if available)
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, this.constructor);
-    }
+    this.name = this.constructor.name;
+    // Fix the prototype chain in environments that don't support it
+    Object.setPrototypeOf(this, new.target.prototype);
   }
 }
 
 /**
- * Timeout error, thrown when cache operations exceed time limits.
- * 
- * @example
- * ```ts
- * try {
- *   const data = await fetchWithCache('key', fetcher, { lockTimeout: 1000 });
- * } catch (error) {
- *   if (error instanceof CacheTimeoutError) {
- *     console.error('Cache operation timed out:', error.message);
- *   }
- * }
- * ```
+ * Error thrown when a cache operation times out
  */
 export class CacheTimeoutError extends CacheError {
   constructor(message: string) {
     super(message);
-    this.name = 'CacheTimeoutError';
+  }
+}
+
+/**
+ * Error thrown when a cache backend operation fails
+ */
+export class CacheBackendError extends CacheError {
+  cause?: Error;
+
+  constructor(message: string, cause?: Error) {
+    super(message);
+    this.cause = cause;
+  }
+}
+
+/**
+ * Error thrown when serialization or deserialization fails
+ */
+export class CacheSerializationError extends CacheError {
+  constructor(message: string) {
+    super(message);
+  }
+}
+
+/**
+ * Error thrown when cache configuration is invalid
+ */
+export class CacheConfigError extends CacheError {
+  constructor(message: string) {
+    super(message);
   }
 }
 
@@ -56,35 +72,5 @@ export class CacheLockError extends CacheError {
   constructor(message: string) {
     super(message);
     this.name = 'CacheLockError';
-  }
-}
-
-/**
- * Serialization error, thrown when serializing/deserializing cache data fails.
- */
-export class CacheSerializationError extends CacheError {
-  constructor(message: string) {
-    super(message);
-    this.name = 'CacheSerializationError';
-  }
-}
-
-/**
- * Backend error, thrown when a cache backend operation fails.
- */
-export class CacheBackendError extends CacheError {
-  constructor(message: string, public readonly cause?: Error) {
-    super(message);
-    this.name = 'CacheBackendError';
-  }
-}
-
-/**
- * Configuration error, thrown when cache configuration is invalid.
- */
-export class CacheConfigError extends CacheError {
-  constructor(message: string) {
-    super(message);
-    this.name = 'CacheConfigError';
   }
 } 

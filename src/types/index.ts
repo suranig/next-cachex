@@ -72,6 +72,8 @@ export interface CacheFetchOptions {
   ttl?: number;
   lockTimeout?: number;
   staleTtl?: number;
+  backend?: CacheBackend<any>; // For testing
+  logger?: CacheLogger; // For testing
 }
 
 /**

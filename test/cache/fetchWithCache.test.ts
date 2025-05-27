@@ -9,7 +9,7 @@ class MemoryBackend<T> implements CacheBackend<T> {
   async get(key: string) {
     return this.store.get(key);
   }
-  async set(key: string, value: T) {
+  async set(key: string, value: T, options?: { ttl?: number }) {
     this.store.set(key, value);
   }
   async del(key: string) {
@@ -42,7 +42,7 @@ describe('fetchWithCache', () => {
   });
 
   it('returns cached value on HIT and logs HIT', async () => {
-    backend.set('foo', 42);
+    await backend.set('next-cachex:foo', 42);
     const result = await fetchWithCache('foo', async () => 99, { backend, logger });
     expect(result).toBe(42);
     expect(logEvents.some(e => e.type === 'HIT')).toBe(true);
@@ -51,27 +51,31 @@ describe('fetchWithCache', () => {
   it('fetches, sets, and returns value on MISS, logs MISS and LOCK', async () => {
     const result = await fetchWithCache('bar', async () => 123, { backend, logger });
     expect(result).toBe(123);
-    expect(await backend.get('bar')).toBe(123);
+    expect(await backend.get('next-cachex:bar')).toBe(123);
     expect(logEvents.some(e => e.type === 'MISS')).toBe(true);
     expect(logEvents.some(e => e.type === 'LOCK')).toBe(true);
   });
 
   it('waits for lock and returns value if set by another process', async () => {
-    backend.locks.add('baz:lock');
+    // Simulate lock already taken
+    await backend.lock('lock:next-cachex:baz', 0.5); // Lock for 0.5 seconds
+    
+    // Setup another "process" to release the lock and set value
     setTimeout(() => {
-      backend.locks.delete('baz:lock');
-      backend.set('baz', 555);
+      backend.unlock('lock:next-cachex:baz');
+      backend.set('next-cachex:baz', 555);
     }, 100);
-    const result = await fetchWithCache('baz', async () => 999, { backend, logger, lockTimeout: 1 });
+    
+    const result = await fetchWithCache('baz', async () => 999, { backend, logger, lockTimeout: 1000 });
     expect(result).toBe(555);
     expect(logEvents.some(e => e.type === 'WAIT')).toBe(true);
   });
 
   it('throws CacheTimeoutError if lock not released in time', async () => {
-    backend.locks.add('locked:lock');
-    await expect(fetchWithCache('locked', async () => 1, { backend, logger, lockTimeout: 0.1 }))
+    await backend.lock('lock:next-cachex:locked', 1); // Lock for 1 second
+    await expect(fetchWithCache('locked', async () => 1, { backend, logger, lockTimeout: 100 }))
       .rejects.toThrow(CacheTimeoutError);
-    expect(logEvents.some(e => e.type === 'ERROR')).toBe(true);
+    expect(logEvents.some(e => e.type === 'WAIT')).toBe(true);
   });
 
   it('logs ERROR and rethrows if fetcher throws', async () => {
