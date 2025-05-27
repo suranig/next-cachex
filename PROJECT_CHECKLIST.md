@@ -37,7 +37,7 @@
 
 ## 6. Documentation
 - [x] Write/refresh README: motivation, install, API, usage, gotchas
-- [ ] Add real-world usage examples (SSR, RSC, API Route, instrumentation)
+- [x] Add real-world usage examples (SSR, RSC, API Route, instrumentation)
 - [x] Document all exported functions/types with JSDoc
 - [ ] Add typedoc generation script
 - [ ] Maintain CHANGELOG.md (auto-generated via CI)
