@@ -20,12 +20,12 @@
 ## 4. Core Implementation
 - [x] Implement and export all core types/interfaces (with JSDoc)
 - [x] Implement backend-agnostic cache handler (`fetchWithCache`)
-- [ ] Implement handler factory (`createCacheHandler`)
+- [x] Implement handler factory (`createCacheHandler`)
 - [x] Implement Redis backend plugin (in `src/backends/`)
 - [ ] Implement error types (e.g., `CacheTimeoutError`)
-- [ ] Implement key prefixing/namespacing logic
+- [x] Implement key prefixing/namespacing logic
 - [ ] Implement distributed lock logic (atomic, with TTL)
-- [ ] Implement logging (pluggable logger)
+- [x] Implement logging (pluggable logger)
 - [ ] Implement stale cache fallback (optional)
 - [ ] Implement instrumentation/build hooks
 
