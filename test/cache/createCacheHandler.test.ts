@@ -100,4 +100,62 @@ describe('createCacheHandler', () => {
       .rejects.toThrow('fail');
     expect(logEvents.some(e => e.type === 'ERROR')).toBe(true);
   });
+
+  // Add tests for stale cache fallback
+  describe('stale cache fallback', () => {
+    let handlerWithFallback: CacheHandler;
+    
+    beforeEach(() => {
+      backend = new MemoryBackend();
+      logEvents = [];
+      handlerWithFallback = createCacheHandler({
+        backend,
+        prefix: 'test',
+        version: 'v1',
+        fallbackToStale: true,
+        logger: { log: (event) => logEvents.push(event) },
+      });
+    });
+    
+    it('should save stale copy when staleTtl is provided', async () => {
+      const result = await handlerWithFallback.fetch('stale-test', async () => 'fresh-value', {
+        ttl: 10,
+        staleTtl: 60,
+      });
+      
+      expect(result).toBe('fresh-value');
+      expect(await backend.get('test:v1:stale-test')).toBe('fresh-value');
+      expect(await backend.get('stale:test:v1:stale-test')).toBe('fresh-value');
+    });
+    
+    it('should fall back to stale value when fetcher fails', async () => {
+      // First successful fetch to populate stale cache
+      await handlerWithFallback.fetch('stale-fallback', async () => 'original-value', {
+        ttl: 10,
+        staleTtl: 60,
+      });
+      
+      // Delete the main value but keep the stale copy
+      await backend.del('test:v1:stale-fallback');
+      
+      // Now fetch again, but make the fetcher fail
+      const fetcherThatFails = async () => { throw new Error('Fetcher failed'); };
+      const result = await handlerWithFallback.fetch('stale-fallback', fetcherThatFails, {
+        staleTtl: 60,
+      });
+      
+      expect(result).toBe('original-value');
+      expect(logEvents.some(e => e.type === 'ERROR')).toBe(true);
+      expect(logEvents.some(e => e.type === 'HIT' && e.key === 'stale:test:v1:stale-fallback')).toBe(true);
+    });
+    
+    it('should not save stale copy when staleTtl is less than or equal to ttl', async () => {
+      await handlerWithFallback.fetch('no-stale', async () => 'value', {
+        ttl: 30,
+        staleTtl: 30, // Same as ttl, so no stale copy
+      });
+      
+      expect(await backend.get('stale:test:v1:no-stale')).toBeUndefined();
+    });
+  });
 }); 

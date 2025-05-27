@@ -119,6 +119,23 @@ export function createCacheHandler<T = unknown>(
           ttl: fetchOptions.ttl,
         });
         
+        // If staleTtl is set, store a stale copy with longer TTL
+        if (fallbackToStale && fetchOptions.staleTtl && fetchOptions.staleTtl > fetchOptions.ttl) {
+          const staleKey = `stale:${fullKey}`;
+          try {
+            await backend.set(staleKey, value as unknown as T, {
+              ttl: fetchOptions.staleTtl,
+            });
+          } catch (error) {
+            // Just log stale cache errors, don't throw
+            logger.log({
+              type: 'ERROR',
+              key: staleKey,
+              error: error instanceof Error ? error : new Error(String(error)),
+            });
+          }
+        }
+        
         return value;
       } catch (error) {
         logger.log({ 
@@ -128,9 +145,22 @@ export function createCacheHandler<T = unknown>(
         });
         
         // If fallback to stale is enabled, try to get stale value
-        if (fallbackToStale) {
-          // We could implement stale cache retrieval here
-          // For now, just rethrow
+        if (fallbackToStale && fetchOptions.staleTtl) {
+          const staleKey = `stale:${fullKey}`;
+          try {
+            const staleValue = await backend.get(staleKey) as R | undefined;
+            if (staleValue !== undefined) {
+              logger.log({ type: 'HIT', key: `stale:${fullKey}` });
+              return staleValue;
+            }
+          } catch (staleError) {
+            // Just log stale cache errors, continue with original error
+            logger.log({
+              type: 'ERROR',
+              key: staleKey,
+              error: staleError instanceof Error ? staleError : new Error(String(staleError)),
+            });
+          }
         }
         
         throw error;
