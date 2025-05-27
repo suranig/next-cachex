@@ -47,7 +47,7 @@
 - [x] Add GitHub Actions for lint, type-check, test, build, release
 - [x] Add pre-commit hooks for lint/format (Husky)
 - [ ] Ensure all merges to main are PR-reviewed and pass CI
-- [ ] Auto-publish on tag/release (npm + GitHub Packages)
+- [x] Auto-publish on tag/release (npm + GitHub Packages)
 - [x] Add code coverage reporting (Codecov)
 
 ## 8. Security & Best Practices

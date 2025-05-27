@@ -1,0 +1,16 @@
+{
+  "reporter": ["text", "lcov"],
+  "exclude": [
+    "node_modules/**",
+    "test/**",
+    "examples/**",
+    "**/*.d.ts",
+    "vitest.config.ts"
+  ],
+  "all": true,
+  "check-coverage": true,
+  "branches": 80,
+  "lines": 90,
+  "functions": 90,
+  "statements": 90
+} 

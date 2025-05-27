@@ -12,13 +12,42 @@
 - husky (pre-commit hooks)
 - typedoc (API documentation)
 
-## Installation
+## Development
+
+### Installation
 ```sh
 npm install next-cachex
 # For development:
 npm install --save-dev typescript vitest @types/node eslint prettier husky typedoc
 npm install ioredis
 ```
+
+### Testing
+```sh
+npm run test       # Run tests
+npm run lint       # Run linter
+npm run coverage   # Run tests with coverage
+```
+
+### Release Process
+To release a new version:
+
+```sh
+# For a patch release (bug fixes)
+make release-patch
+
+# For a minor release (new features, backward compatible)
+make release-minor
+
+# For a major release (breaking changes)
+make release-major
+```
+
+This will:
+1. Update the version in package.json
+2. Create a git tag
+3. Push changes and tags to GitHub
+4. Trigger the GitHub Actions workflow that publishes to npm and GitHub Packages
 
 # Assumptions and Technical Specification
 

@@ -1,6 +1,6 @@
 # Makefile for next-cachex
 
-.PHONY: test lint pipeline coverage
+.PHONY: test lint pipeline coverage release-patch release-minor release-major
 
 test:
 	npx vitest run
@@ -11,4 +11,13 @@ lint:
 pipeline: lint test 
 
 coverage:
-	npx vitest run --coverage 
+	npx c8 vitest run
+
+release-patch:
+	npm version patch && git push && git push --tags
+
+release-minor:
+	npm version minor && git push && git push --tags
+
+release-major:
+	npm version major && git push && git push --tags 
