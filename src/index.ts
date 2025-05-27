@@ -5,8 +5,8 @@
  */
 
 // Main exports
-export { fetchWithCache, cacheHandler } from './fetchWithCache';
-export { createCacheHandler } from './createCacheHandler';
+export { fetchWithCache, cacheHandler } from './cache/fetchWithCache';
+export { createCacheHandler } from './cache/createCacheHandler';
 
 // Types
 export * from './types';
