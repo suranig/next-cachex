@@ -13,3 +13,6 @@ export * from './types';
 
 // Re-export backends for convenience
 export * from './backends';
+
+// Instrumentation utilities
+export { registerInitialCache, clearCache } from './instrumentation';
