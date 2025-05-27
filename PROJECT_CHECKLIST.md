@@ -27,7 +27,7 @@
 - [x] Implement distributed lock logic (atomic, with TTL)
 - [x] Implement logging (pluggable logger)
 - [x] Implement stale cache fallback (optional)
-- [ ] Implement instrumentation/build hooks
+- [x] Implement instrumentation/build hooks
 
 ## 5. Testing
 - [x] Write unit tests for all core logic (Vitest)
