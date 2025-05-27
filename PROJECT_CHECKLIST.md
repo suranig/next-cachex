@@ -26,7 +26,7 @@
 - [x] Implement key prefixing/namespacing logic
 - [x] Implement distributed lock logic (atomic, with TTL)
 - [x] Implement logging (pluggable logger)
-- [ ] Implement stale cache fallback (optional)
+- [x] Implement stale cache fallback (optional)
 - [ ] Implement instrumentation/build hooks
 
 ## 5. Testing
