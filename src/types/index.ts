@@ -107,3 +107,29 @@ export class CacheConnectionError extends Error {
     this.name = 'CacheConnectionError';
   }
 }
+
+/**
+ * Cache handler interface, returned by createCacheHandler
+ */
+export interface CacheHandler<T = unknown> {
+  /**
+   * Fetch a value from the cache, or execute the fetcher function to get and cache the value
+   * @param key - The cache key
+   * @param fetcher - Function to execute on cache miss
+   * @param options - Optional fetch settings (ttl, lockTimeout, etc.)
+   * @returns The cached or fetched value
+   */
+  fetch<R = T>(key: string, fetcher: () => Promise<R>, options?: CacheFetchOptions): Promise<R>;
+  
+  /**
+   * The backend instance used by this handler
+   */
+  backend: CacheBackend<T>;
+  
+  /**
+   * Get the fully qualified key with prefix and version
+   * @param key - The base key
+   * @returns The prefixed key
+   */
+  getFullKey(key: string): string;
+}
