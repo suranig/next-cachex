@@ -3,8 +3,9 @@ import {
   CacheHandler,
   CacheHandlerOptions,
   CacheFetchOptions,
-  CacheTimeoutError,
   CacheLogger,
+  CacheTimeoutError,
+  CacheBackendError,
 } from './types';
 
 /**
@@ -79,17 +80,32 @@ export function createCacheHandler<T = unknown>(
     const fetchOptions = { ...DEFAULT_FETCH_OPTIONS, ...options };
     
     // Try to get from cache first
-    const cached = await backend.get(fullKey) as R | undefined;
-    if (cached !== undefined) {
-      logger.log({ type: 'HIT', key: fullKey });
-      return cached;
+    try {
+      const cached = await backend.get(fullKey) as R | undefined;
+      if (cached !== undefined) {
+        logger.log({ type: 'HIT', key: fullKey });
+        return cached;
+      }
+    } catch (error) {
+      throw new CacheBackendError(
+        `Failed to get value from cache: ${error instanceof Error ? error.message : String(error)}`,
+        error instanceof Error ? error : undefined
+      );
     }
     
     logger.log({ type: 'MISS', key: fullKey });
     
     // Try to acquire a lock
     const lockKey = `lock:${fullKey}`;
-    const lockAcquired = await backend.lock(lockKey, Math.ceil(fetchOptions.lockTimeout / 1000));
+    let lockAcquired = false;
+    try {
+      lockAcquired = await backend.lock(lockKey, Math.ceil(fetchOptions.lockTimeout / 1000));
+    } catch (error) {
+      throw new CacheBackendError(
+        `Failed to acquire lock: ${error instanceof Error ? error.message : String(error)}`,
+        error instanceof Error ? error : undefined
+      );
+    }
     
     if (lockAcquired) {
       try {
@@ -120,7 +136,19 @@ export function createCacheHandler<T = unknown>(
         throw error;
       } finally {
         // Always release the lock
-        await backend.unlock(lockKey);
+        try {
+          await backend.unlock(lockKey);
+        } catch (error) {
+          // Just log unlock errors, don't throw
+          logger.log({ 
+            type: 'ERROR', 
+            key: lockKey, 
+            error: new CacheBackendError(
+              `Failed to release lock: ${error instanceof Error ? error.message : String(error)}`,
+              error instanceof Error ? error : undefined
+            ),
+          });
+        }
       }
     } else {
       // Lock not acquired, wait for the value to be available
@@ -134,9 +162,14 @@ export function createCacheHandler<T = unknown>(
         await new Promise((resolve) => setTimeout(resolve, 100));
         
         // Check if the value is now available
-        const value = await backend.get(fullKey) as R | undefined;
-        if (value !== undefined) {
-          return value;
+        try {
+          const value = await backend.get(fullKey) as R | undefined;
+          if (value !== undefined) {
+            return value;
+          }
+        } catch (error) {
+          // Continue polling even if get fails
+          continue;
         }
       }
       

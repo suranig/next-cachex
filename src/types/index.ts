@@ -4,6 +4,9 @@
  * @packageDocumentation
  */
 
+// Re-export all error types from errors.ts
+export * from '../errors';
+
 /**
  * Represents a generic cache backend interface.
  * All backends (Redis, Memcached, etc.) must implement this.
@@ -87,26 +90,6 @@ export type CacheLogEvent =
   | { type: 'LOCK'; key: string }
   | { type: 'WAIT'; key: string }
   | { type: 'ERROR'; key: string; error: Error };
-
-/**
- * Typed error for cache timeouts.
- */
-export class CacheTimeoutError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'CacheTimeoutError';
-  }
-}
-
-/**
- * Typed error for cache connection issues.
- */
-export class CacheConnectionError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'CacheConnectionError';
-  }
-}
 
 /**
  * Cache handler interface, returned by createCacheHandler
