@@ -14,14 +14,14 @@ export * from '../errors';
 export interface CacheBackend<T = unknown> {
   /**
    * Get a value from the cache by key.
-   * @param key - The cache key
+   * @param key - The cache key to retrieve
    * @returns The cached value or undefined if not found
    */
   get(key: string): Promise<T | undefined>;
 
   /**
    * Set a value in the cache.
-   * @param key - The cache key
+   * @param key - The cache key to set
    * @param value - The value to cache
    * @param options - Optional TTL in seconds
    */
@@ -29,13 +29,13 @@ export interface CacheBackend<T = unknown> {
 
   /**
    * Delete a value from the cache.
-   * @param key - The cache key
+   * @param key - The cache key to delete
    */
   del(key: string): Promise<void>;
 
   /**
    * Acquire a distributed lock for a key.
-   * @param key - The lock key
+   * @param key - The lock key to acquire
    * @param ttl - Lock TTL in seconds
    * @returns True if lock acquired, false otherwise
    */
@@ -43,7 +43,7 @@ export interface CacheBackend<T = unknown> {
 
   /**
    * Release a distributed lock for a key.
-   * @param key - The lock key
+   * @param key - The lock key to release
    */
   unlock(key: string): Promise<void>;
 
@@ -72,7 +72,7 @@ export interface CacheFetchOptions {
   ttl?: number;
   lockTimeout?: number;
   staleTtl?: number;
-  backend?: CacheBackend<any>; // For testing
+  backend?: CacheBackend<unknown>; // For testing
   logger?: CacheLogger; // For testing
 }
 
@@ -80,6 +80,10 @@ export interface CacheFetchOptions {
  * Logger interface for cache events.
  */
 export interface CacheLogger {
+  /**
+   * Log a cache event.
+   * @param event - The cache event to log
+   */
   log: (event: CacheLogEvent) => void;
 }
 
@@ -99,7 +103,7 @@ export type CacheLogEvent =
 export interface CacheHandler<T = unknown> {
   /**
    * Fetch a value from the cache, or execute the fetcher function to get and cache the value
-   * @param key - The cache key
+   * @param key - The cache key to fetch
    * @param fetcher - Function to execute on cache miss
    * @param options - Optional fetch settings (ttl, lockTimeout, etc.)
    * @returns The cached or fetched value
@@ -113,7 +117,7 @@ export interface CacheHandler<T = unknown> {
   
   /**
    * Get the fully qualified key with prefix and version
-   * @param key - The base key
+   * @param key - The base key to prefix
    * @returns The prefixed key
    */
   getFullKey(key: string): string;
