@@ -26,7 +26,7 @@ async function fetchProductData(ids: number[]) {
   return responses;
 }
 
-export async function register() {
+export async function register(): Promise<void> {
   // Only run in Node.js environment (not Edge)
   if (process.env.NEXT_RUNTIME === 'nodejs') {
     console.log('⚡ Initializing cache via instrumentation');
