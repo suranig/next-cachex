@@ -1,13 +1,3 @@
-import type { CacheFetchOptions } from '../types';
-import { createCacheHandler } from './createCacheHandler';
-import { createDefaultBackend } from '../backends';
-
-// Create a singleton cache handler with default Redis backend
-const defaultHandler = createCacheHandler({
-  backend: createDefaultBackend(),
-  prefix: 'next-cachex',
-});
-
 /**
  * Fetch data from cache or execute the fetcher function.
  * This is a convenience wrapper around the default cache handler.
@@ -28,6 +18,16 @@ const defaultHandler = createCacheHandler({
  * );
  * ```
  */
+import type { CacheFetchOptions } from '../types';
+import { createCacheHandler } from './createCacheHandler';
+import { createDefaultBackend } from '../backends';
+
+// Create a singleton cache handler with default Redis backend
+const defaultHandler = createCacheHandler({
+  backend: createDefaultBackend(),
+  prefix: 'next-cachex',
+});
+
 export async function fetchWithCache<T>(
   key: string,
   fetcher: () => Promise<T>,
