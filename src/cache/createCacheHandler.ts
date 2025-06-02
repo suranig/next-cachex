@@ -1,5 +1,4 @@
 import {
-  CacheBackend,
   CacheHandler,
   CacheHandlerOptions,
   CacheFetchOptions,
@@ -168,14 +167,14 @@ export function createCacheHandler<T = unknown>(
         // Always release the lock
         try {
           await backend.unlock(lockKey);
-        } catch (error) {
+        } catch (unlockError) {
           // Just log unlock errors, don't throw
           logger.log({ 
             type: 'ERROR', 
             key: lockKey, 
             error: new CacheBackendError(
-              `Failed to release lock: ${error instanceof Error ? error.message : String(error)}`,
-              error instanceof Error ? error : undefined
+              `Failed to release lock: ${unlockError instanceof Error ? unlockError.message : String(unlockError)}`,
+              unlockError instanceof Error ? unlockError : undefined
             ),
           });
         }
