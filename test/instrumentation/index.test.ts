@@ -31,11 +31,11 @@ class MemoryBackend<T> implements CacheBackend<T> {
 }
 
 describe('Instrumentation', () => {
-  let backend: MemoryBackend<unknown>;
-  let handler: CacheHandler;
+  let backend: MemoryBackend<string | { nested: boolean }>;
+  let handler: CacheHandler<string | { nested: boolean }>;
 
   beforeEach(() => {
-    backend = new MemoryBackend();
+    backend = new MemoryBackend<string | { nested: boolean }>();
     handler = {
       backend,
       fetch: vi.fn(),
@@ -86,7 +86,7 @@ describe('Instrumentation', () => {
       await registerInitialCache(handler, []);
       expect(setSpy).not.toHaveBeenCalled();
       
-      await registerInitialCache(handler, null as any);
+      await registerInitialCache(handler, null as unknown as Array<{ key: string; value: unknown; options?: { ttl?: number; staleTtl?: number } }>);
       expect(setSpy).not.toHaveBeenCalled();
     });
   });
@@ -110,7 +110,7 @@ describe('Instrumentation', () => {
           lock: backend.lock.bind(backend),
           unlock: backend.unlock.bind(backend)
           // clear method intentionally omitted
-        } as CacheBackend<unknown>,
+        } as CacheBackend<string | { nested: boolean }>,
         fetch: vi.fn(),
         getFullKey: (key: string) => `test:${key}`,
       };
