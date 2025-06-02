@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { fetchWithCache } from '../../src/cache/fetchWithCache';
 import { CacheBackend, CacheLogger, CacheTimeoutError } from '../../src/types';
 
@@ -31,12 +31,12 @@ class MemoryBackend<T> implements CacheBackend<T> {
 }
 
 describe('fetchWithCache', () => {
-  let backend: MemoryBackend<any>;
+  let backend: MemoryBackend<number>;
   let logger: CacheLogger;
-  let logEvents: any[];
+  let logEvents: Array<{ type: string; key: string; error?: Error }>;
 
   beforeEach(() => {
-    backend = new MemoryBackend();
+    backend = new MemoryBackend<number>();
     logEvents = [];
     logger = { log: (event) => logEvents.push(event) };
   });
