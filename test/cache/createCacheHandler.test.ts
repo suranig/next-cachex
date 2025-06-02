@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { createCacheHandler } from '../../src/cache/createCacheHandler';
-import { CacheBackend, CacheHandler, CacheTimeoutError } from '../../src/types';
+import { CacheBackend, CacheHandler, CacheTimeoutError, CacheLogEvent } from '../../src/types';
 
 // Simple in-memory backend for testing
 class MemoryBackend<T> implements CacheBackend<T> {
@@ -31,12 +31,12 @@ class MemoryBackend<T> implements CacheBackend<T> {
 }
 
 describe('createCacheHandler', () => {
-  let backend: MemoryBackend<unknown>;
-  let handler: CacheHandler;
-  let logEvents: any[];
+  let backend: MemoryBackend<number>;
+  let handler: CacheHandler<number>;
+  let logEvents: CacheLogEvent[];
 
   beforeEach(() => {
-    backend = new MemoryBackend();
+    backend = new MemoryBackend<number>();
     logEvents = [];
     handler = createCacheHandler({
       backend,
@@ -103,10 +103,10 @@ describe('createCacheHandler', () => {
 
   // Add tests for stale cache fallback
   describe('stale cache fallback', () => {
-    let handlerWithFallback: CacheHandler;
+    let handlerWithFallback: CacheHandler<number>;
     
     beforeEach(() => {
-      backend = new MemoryBackend();
+      backend = new MemoryBackend<number>();
       logEvents = [];
       handlerWithFallback = createCacheHandler({
         backend,
