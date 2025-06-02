@@ -97,9 +97,8 @@ export class RedisCacheBackend<T = unknown> implements CacheBackend<T> {
   async lock(key: string, ttl: number): Promise<boolean> {
     const fullKey = this.prefix ? `${this.prefix}:${key}` : key;
     try {
-      // Use SET NX EX for atomic lock (object options form, ioredis v5+)
-      // ioredis types may not recognize the object form, but it's supported at runtime
-      const result = await this.client.set(fullKey, '1', { NX: true, EX: ttl } as any);
+      // Use SET NX EX for atomic lock
+      const result = await this.client.set(fullKey, '1', 'EX', ttl, 'NX');
       return result === 'OK';
     } catch (error) {
       throw new CacheBackendError(
