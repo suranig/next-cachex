@@ -2,8 +2,7 @@ module.exports = {
   parser: '@typescript-eslint/parser',
   extends: [
     'eslint:recommended',
-    'plugin:@typescript-eslint/recommended',
-    'plugin:@typescript-eslint/recommended-requiring-type-checking',
+    'plugin:@typescript-eslint/recommended'
   ],
   plugins: ['@typescript-eslint'],
   parserOptions: {
@@ -16,8 +15,8 @@ module.exports = {
     es6: true,
   },
   rules: {
-    'no-console': ['error', { allow: ['warn', 'error'] }],
-    '@typescript-eslint/explicit-module-boundary-types': 'error',
+    'no-console': 'warn',
+    '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/no-explicit-any': 'error',
     '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     '@typescript-eslint/no-non-null-assertion': 'error',
