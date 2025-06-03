@@ -22,4 +22,4 @@ module.exports = {
     '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     '@typescript-eslint/no-non-null-assertion': 'error',
   },
-}; 
+};
