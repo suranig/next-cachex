@@ -9,7 +9,7 @@ class MemoryBackend<T> implements CacheBackend<T> {
   async get(key: string) {
     return this.store.get(key);
   }
-  async set(key: string, value: T, options?: { ttl?: number }) {
+  async set(key: string, value: T, _options?: { ttl?: number }) {
     this.store.set(key, value);
   }
   async del(key: string) {
