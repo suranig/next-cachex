@@ -1,0 +1,46 @@
+{
+  "name": "next-cachex",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "1. Project Goal - provide a distributed, shared cache handler for Next.js (13+), fully compatible with both App Router (app/) and Pages - - router (pages/), designed for multi-pod environments (Kubernetes, ECS, Vercel, etc.). - primary backend at launch: Redis (support for more cache backends in future). - solve production-scale cache problems: thundering herd, consistency, TTL, namespacing, easy API for developers.",
+  "main": "index.js",
+  "directories": {
+    "example": "examples",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "lint": "eslint . --ext .ts",
+    "coverage": "c8 vitest run",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "build": "tsc",
+    "prepublishOnly": "npm run lint && npm run test && npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/suranig/next-cachex.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/suranig/next-cachex/issues"
+  },
+  "homepage": "https://github.com/suranig/next-cachex#readme",
+  "devDependencies": {
+    "@types/node": "^22.15.21",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "@vitest/coverage-v8": "^3.1.4",
+    "c8": "^9.1.0",
+    "eslint": "^8.57.1",
+    "husky": "^9.1.7",
+    "prettier": "^3.5.3",
+    "typedoc": "^0.28.5",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.4"
+  },
+  "dependencies": {
+    "ioredis": "^5.6.1"
+  }
+}
