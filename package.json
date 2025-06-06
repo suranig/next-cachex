@@ -3,7 +3,7 @@
   "version": "0.2.0",
   "type": "module",
   "description": "1. Project Goal - provide a distributed, shared cache handler for Next.js (13+), fully compatible with both App Router (app/) and Pages - - router (pages/), designed for multi-pod environments (Kubernetes, ECS, Vercel, etc.). - primary backend at launch: Redis (support for more cache backends in future). - solve production-scale cache problems: thundering herd, consistency, TTL, namespacing, easy API for developers.",
-  "main": "index.js",
+  "main": "dist/index.js",
   "directories": {
     "example": "examples",
     "test": "test"
@@ -13,7 +13,7 @@
     "lint": "eslint . --ext .ts",
     "coverage": "c8 vitest run",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "build": "tsc",
+    "build": "tsc -p tsconfig.build.json",
     "prepublishOnly": "npm run lint && npm run test && npm run build"
   },
   "repository": {
@@ -42,5 +42,9 @@
   },
   "dependencies": {
     "ioredis": "^5.6.1"
-  }
+  },
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ]
 }
