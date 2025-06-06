@@ -51,7 +51,7 @@ jobs:
           --registry=https://npm.pkg.github.com/
           --scope=@suranig
         env:
-          NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
 
   create-release:
     needs: [publish-npm, publish-gpr]
@@ -70,4 +70,4 @@ jobs:
           body_path: CHANGELOG.md
           generate_release_notes: true
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.NPM_TOKEN }}
