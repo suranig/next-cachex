@@ -18,15 +18,20 @@
  * );
  * ```
  */
-import type { CacheFetchOptions } from '../types';
+import type { CacheFetchOptions, CacheHandler } from '../types';
 import { createCacheHandler } from './createCacheHandler';
 import { createDefaultBackend } from '../backends';
 
-// Create a singleton cache handler with default Redis backend
-const defaultHandler = createCacheHandler({
-  backend: createDefaultBackend(),
-  prefix: 'next-cachex',
-});
+// Lazily create the default cache handler when first accessed
+let defaultHandler: CacheHandler<unknown> | undefined;
+export function getDefaultHandler() {
+  if (!defaultHandler)
+    defaultHandler = createCacheHandler({
+      backend: createDefaultBackend(),
+      prefix: 'next-cachex',
+    });
+  return defaultHandler;
+}
 
 export async function fetchWithCache<T>(
   key: string,
@@ -44,8 +49,8 @@ export async function fetchWithCache<T>(
   }
   
   // Use the default handler
-  return defaultHandler.fetch(key, fetcher, options);
+  return getDefaultHandler().fetch(key, fetcher, options);
 }
 
 // Export the default handler for convenience
-export const cacheHandler = defaultHandler; 
+export { getDefaultHandler as cacheHandler };
