@@ -1,6 +1,6 @@
 # next-cachex
 
-[![codecov](https://codecov.io/gh/suranig/next-cachex/branch/main/graph/badge.svg)](https://codecov.io/gh/suranig/next-cachex)
+[![codecov](https://codecov.io/gh/suranig/next-cachex/branch/master/graph/badge.svg)](https://codecov.io/gh/suranig/next-cachex)
 
 ## Dependencies
 - typescript@5 (strict mode)

@@ -1,0 +1,101 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Code Quality & Style
+Use strict TypeScript mode ("strict": true in tsconfig.json).
+
+Always use type-safe generics for cache data and options.
+
+No any unless explicitly justified and commented.
+
+Export all public types & interfaces (for consumers’ DX).
+
+Write self-explanatory code – prefer clarity over cleverness.
+
+Organize by feature/domain (not file type). Example: src/cache/, src/backends/, src/types/
+
+Group logic into small, pure, composable functions.
+
+API Design
+The default export must be backend-agnostic (fetchWithCache, not fetchWithRedis).
+
+All configurable options should be passed as objects with named properties (not as long argument lists).
+
+Use factory functions for custom handlers (createCacheHandler).
+
+Always expose typed errors (e.g., CacheTimeoutError) – never throw raw strings.
+
+Document all public APIs and their options with JSDoc.
+
+Extensibility & Backends
+Design handler interfaces to easily add new backends (e.g., Redis, Memcached, Varnish).
+
+Each backend should implement a common interface (e.g., CacheBackend with .get, .set, .del, .lock).
+
+Support global key prefixing/namespacing.
+
+Default to Redis, but never hardcode Redis specifics outside its backend.
+
+Testing & Quality Gates
+100% coverage on core logic (Vitest/Jest).
+
+All new code must have unit tests (and integration tests if backend-specific).
+
+Mock external dependencies in tests (i.e., mock Redis, don’t hit live infra).
+
+CI must run lint, type-check, test, build before merge (GitHub Actions).
+
+Use pre-commit hooks for lint & formatting (e.g., via Husky).
+
+Documentation & Examples
+Write a comprehensive README.md with motivation, installation, API, use-cases, gotchas.
+
+All exported functions/types must have clear JSDoc (typedoc ready).
+
+Provide real-world usage examples (SSR, RSC, API Route, instrumentation).
+
+Maintain a CHANGELOG.md (auto-generated via CI).
+
+Versioning & Publishing
+Use semver – breaking changes always increment major.
+
+All merges to main must be PR-reviewed and pass CI.
+
+Auto-publish on tag/release via GitHub Actions (npm + GH Packages).
+
+Add a license file and ensure every source file has license headers if required.
+
+Performance & Safety
+All cache operations must be async and non-blocking.
+
+Enforce timeouts for all network/cache operations.
+
+Provide configurable stale cache fallback (optionally).
+
+Ensure lock implementation is atomic, with TTL (no “forever locks”).
+
+No console.log in production builds; use a pluggable logger or debug flag.
+
+Security
+Never log secrets, tokens, or raw credentials.
+
+Always validate user input for key names/prefixes.
+
+Document all known security considerations and recommendations.
+
+Extensibility for Future Contributors
+Favor composition over inheritance in new backends or features.
+
+Mark internal APIs as such (with /** @internal */ or similar).
+
+Leave clear TODO/FIXME comments where design is to be extended.
+
+Use “open/closed” principle in handler design (open for extension, closed for modification).
+
+Every PR must follow these rules.
+Code should be readable, robust, extensible, and easy to onboard for other seniors.
+Any deviation from these principles should be justified in code review. We can use SOLID methodology for code.
+examples
+@https://caching-tools.github.io/next-shared-cache/r 

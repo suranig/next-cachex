@@ -11,7 +11,7 @@ lint:
 pipeline: lint test 
 
 coverage:
-	npx c8 vitest run
+	npx vitest run --coverage
 
 release-patch:
 	npm version patch && git push && git push --tags
