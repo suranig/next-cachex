@@ -73,19 +73,22 @@ describe('RedisCacheBackend', () => {
       await expect(backend.get('test-key')).rejects.toThrow('Redis get operation failed');
     });
 
-    it('should rethrow CacheSerializationError without wrapping', async () => {
-      const serializationError = new CacheSerializationError('Custom serialization error');
+    it('should throw CacheSerializationError when JSON.parse fails', async () => {
       mockRedisClient.get.mockResolvedValue('invalid-json');
       
-      // Mock JSON.parse to throw our custom error
+      // Mock JSON.parse to throw an error
       const originalParse = JSON.parse;
       JSON.parse = vi.fn().mockImplementation(() => {
-        throw serializationError;
+        throw new Error('Custom parse error');
       });
 
-      await expect(backend.get('test-key')).rejects.toThrow(serializationError);
-
-      JSON.parse = originalParse;
+      try {
+        await expect(backend.get('test-key')).rejects.toThrow(CacheSerializationError);
+        await expect(backend.get('test-key')).rejects.toThrow('Failed to parse cached value');
+      } finally {
+        // Always restore JSON.parse
+        JSON.parse = originalParse;
+      }
     });
 
     it('should handle non-Error objects in Redis errors', async () => {
