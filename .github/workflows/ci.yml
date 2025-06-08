@@ -36,7 +36,7 @@ jobs:
         with:
           node-version: 18.x
       - run: npm ci
-      - run: npx vitest run --coverage
+      - run: npm run coverage
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
