@@ -88,6 +88,35 @@ describe('Instrumentation', () => {
       
       await registerInitialCache(handler, null as unknown as Array<{ key: string; value: unknown; options?: { ttl?: number; staleTtl?: number } }>);
       expect(setSpy).not.toHaveBeenCalled();
+      
+      await registerInitialCache(handler, undefined as unknown as Array<{ key: string; value: unknown; options?: { ttl?: number; staleTtl?: number } }>);
+      expect(setSpy).not.toHaveBeenCalled();
+    });
+
+    it('should handle items without options', async () => {
+      await registerInitialCache(handler, [
+        { key: 'no-options', value: 'simple-value' },
+      ]);
+
+      expect(await backend.get('test:no-options')).toBe('simple-value');
+    });
+
+    it('should handle items with only ttl option', async () => {
+      await registerInitialCache(handler, [
+        { key: 'ttl-only', value: 'ttl-value', options: { ttl: 60 } },
+      ]);
+
+      expect(await backend.get('test:ttl-only')).toBe('ttl-value');
+      expect(await backend.get('stale:test:ttl-only')).toBeUndefined();
+    });
+
+    it('should handle items with only staleTtl option', async () => {
+      await registerInitialCache(handler, [
+        { key: 'stale-only', value: 'stale-value', options: { staleTtl: 3600 } },
+      ]);
+
+      expect(await backend.get('test:stale-only')).toBe('stale-value');
+      expect(await backend.get('stale:test:stale-only')).toBe('stale-value');
     });
   });
 
