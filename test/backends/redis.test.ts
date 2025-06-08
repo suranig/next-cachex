@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { RedisCacheBackend } from '../../src/backends/redis';
 import { CacheSerializationError, CacheBackendError, CacheConfigError } from '../../src/types';
+import type Redis from 'ioredis';
 
 // Mock Redis client
 const mockRedisClient = {
@@ -11,14 +12,14 @@ const mockRedisClient = {
 };
 
 describe('RedisCacheBackend', () => {
-  let backend: RedisCacheBackend<any>;
-  let backendWithPrefix: RedisCacheBackend<any>;
+  let backend: RedisCacheBackend<unknown>;
+  let backendWithPrefix: RedisCacheBackend<unknown>;
 
-  beforeEach(() => {
-    vi.clearAllMocks();
-    backend = new RedisCacheBackend(mockRedisClient as any);
-    backendWithPrefix = new RedisCacheBackend(mockRedisClient as any, 'test');
-  });
+      beforeEach(() => {
+      vi.clearAllMocks();
+      backend = new RedisCacheBackend(mockRedisClient as unknown as Redis);
+      backendWithPrefix = new RedisCacheBackend(mockRedisClient as unknown as Redis, 'test');
+    });
 
   describe('constructor', () => {
     it('should create backend without prefix', () => {
@@ -125,7 +126,7 @@ describe('RedisCacheBackend', () => {
 
     it('should throw CacheSerializationError for unstringifiable values', async () => {
       const circularValue = {};
-      (circularValue as any).self = circularValue;
+      (circularValue as Record<string, unknown>).self = circularValue;
 
       await expect(backend.set('test-key', circularValue)).rejects.toThrow(CacheSerializationError);
       await expect(backend.set('test-key', circularValue)).rejects.toThrow('Failed to stringify value');

@@ -255,20 +255,20 @@ describe('createCacheHandler', () => {
           throw new Error('Temporary get error');
         }
         if (key === 'test:v1:polling-key' && getCallCount === 3) {
-          return 'polled-value' as any;
+          return 42;
         }
         return originalGet(key);
       };
       
       setTimeout(() => {
         errorBackend.locks.delete(lockKey);
-        errorBackend.store.set('test:v1:polling-key', 'polled-value' as any);
+        errorBackend.store.set('test:v1:polling-key', 42);
       }, 150);
       
       const result = await errorHandler.fetch('polling-key', async () => 'fetcher-value', { 
         lockTimeout: 1000 
       });
-      expect(result).toBe('polled-value');
+      expect(result).toBe(42);
     });
   });
 
@@ -285,7 +285,7 @@ describe('createCacheHandler', () => {
         }
         return this.store.get(key);
       }
-      async set(key: string, value: T, options?: { ttl?: number }) {
+      async set(key: string, value: T, _options?: { ttl?: number }) {
         if (key.startsWith('stale:') && this.shouldThrowOnStaleSet) {
           throw new Error('Stale set error');
         }

@@ -1,18 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import type {
   CacheBackend,
-  CacheHandler,
   CacheHandlerOptions,
   CacheFetchOptions,
   CacheLogger,
   CacheLogEvent,
-  CacheError,
-  CacheTimeoutError,
-  CacheBackendError,
-  CacheSerializationError,
-  CacheConfigError,
-  CacheConnectionError,
-  CacheLockError,
 } from '../src/types';
 
 describe('Types', () => {

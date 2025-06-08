@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { createDefaultBackend, RedisCacheBackend } from '../../src/backends';
+import type Redis from 'ioredis';
 
 // Mock Redis
 vi.mock('ioredis', () => {
@@ -19,7 +20,7 @@ describe('backends/index', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Clear any global state
-    delete (global as any).globalRedisClient;
+    delete (global as Record<string, unknown>).globalRedisClient;
   });
 
   afterEach(() => {
@@ -46,7 +47,7 @@ describe('backends/index', () => {
       };
       
       const backend = createDefaultBackend({ 
-        redisClient: mockClient as any,
+        redisClient: mockClient as unknown as Redis,
         prefix: 'test' 
       });
       
