@@ -58,21 +58,21 @@ describe('fetchWithCache', () => {
 
   it('waits for lock and returns value if set by another process', async () => {
     // Simulate lock already taken
-    await backend.lock('lock:next-cachex:baz', 0.5); // Lock for 0.5 seconds
+    await backend.lock('lock:next-cachex:baz', 0.2); // Lock for 0.2 seconds
     
     // Setup another "process" to release the lock and set value
     setTimeout(() => {
       backend.unlock('lock:next-cachex:baz');
       backend.set('next-cachex:baz', 555);
-    }, 100);
+    }, 50);
     
-    const result = await fetchWithCache('baz', async () => 999, { backend, logger, lockTimeout: 1000 });
+    const result = await fetchWithCache('baz', async () => 999, { backend, logger, lockTimeout: 500 });
     expect(result).toBe(555);
     expect(logEvents.some(e => e.type === 'WAIT')).toBe(true);
   });
 
   it('throws CacheTimeoutError if lock not released in time', async () => {
-    await backend.lock('lock:next-cachex:locked', 1); // Lock for 1 second
+    await backend.lock('lock:next-cachex:locked', 0.5); // Lock for 0.5 second
     await expect(fetchWithCache('locked', async () => 1, { backend, logger, lockTimeout: 100 }))
       .rejects.toThrow(CacheTimeoutError);
     expect(logEvents.some(e => e.type === 'WAIT')).toBe(true);
