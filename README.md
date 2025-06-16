@@ -5,7 +5,7 @@
 [![codecov](https://codecov.io/gh/suranig/next-cachex/branch/master/graph/badge.svg)](https://codecov.io/gh/suranig/next-cachex)
 [![GitHub Actions](https://github.com/suranig/next-cachex/actions/workflows/ci.yml/badge.svg)](https://github.com/suranig/next-cachex/actions/workflows/ci.yml)
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
-[![GitHub](https://img.shields.io/badge/GitHub-next-cachex-black?style=flat-square&logo=github)](https://github.com/suranig/next-cachex)
+[![GitHub](https://img.shields.io/badge/GitHub-suranig%2Fnext--cachex-black?logo=github)](https://github.com/suranig/next-cachex)
 
 ## Requirements
 - Next.js 13 or later
