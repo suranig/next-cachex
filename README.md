@@ -1,6 +1,7 @@
 # next-cachex
 
 [![npm version](https://badge.fury.io/js/next-cachex.svg)](https://badge.fury.io/js/next-cachex)
+![npm downloads](https://img.shields.io/npm/dt/next-cachex)
 [![codecov](https://codecov.io/gh/suranig/next-cachex/branch/master/graph/badge.svg)](https://codecov.io/gh/suranig/next-cachex)
 [![GitHub Actions](https://github.com/suranig/next-cachex/actions/workflows/ci.yml/badge.svg)](https://github.com/suranig/next-cachex/actions/workflows/ci.yml)
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
