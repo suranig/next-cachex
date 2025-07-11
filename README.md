@@ -50,6 +50,10 @@ npm install
 ## Development
 
 ### Testing
+Before running tests, install dependencies using `npm install` (or `npm ci` for
+CI environments). The test suite uses [vitest](https://vitest.dev) and mocks the
+Redis backend, so no Redis server is required.
+
 ```sh
 npm run test       # Run tests
 npm run lint       # Run linter
