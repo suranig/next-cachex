@@ -152,8 +152,10 @@ describe('RedisCacheBackend', () => {
         throw 'string error';
       });
 
-      await expect(backend.set('test-key', 'value')).rejects.toThrow(CacheSerializationError);
-      await expect(backend.set('test-key', 'value')).rejects.toThrow('string error');
+      // Use a complex object to force JSON.stringify to be called
+      const complexValue = { nested: { data: 'value' } };
+      await expect(backend.set('test-key', complexValue)).rejects.toThrow(CacheSerializationError);
+      await expect(backend.set('test-key', complexValue)).rejects.toThrow('string error');
 
       JSON.stringify = originalStringify;
     });

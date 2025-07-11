@@ -21,15 +21,26 @@
 import type { CacheFetchOptions, CacheHandler } from '../types';
 import { createCacheHandler } from './createCacheHandler';
 import { createDefaultBackend } from '../backends';
+import { MemoryCacheBackend } from '../backends/memory';
 
 // Lazily create the default cache handler when first accessed
 let defaultHandler: CacheHandler<unknown> | undefined;
 export function getDefaultHandler() {
-  if (!defaultHandler)
-    defaultHandler = createCacheHandler({
-      backend: createDefaultBackend(),
-      prefix: 'next-cachex',
-    });
+  if (!defaultHandler) {
+    try {
+      // Try to create a Redis backend first
+      defaultHandler = createCacheHandler({
+        backend: createDefaultBackend(),
+        prefix: 'next-cachex',
+      });
+    } catch (error) {
+      // Fallback to memory backend if Redis is not available (e.g., in tests)
+      defaultHandler = createCacheHandler({
+        backend: new MemoryCacheBackend(),
+        prefix: 'next-cachex',
+      });
+    }
+  }
   return defaultHandler;
 }
 
