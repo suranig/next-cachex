@@ -1,6 +1,7 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterAll } from 'vitest';
 import { fetchWithCache } from '../../src/cache/fetchWithCache';
 import { CacheBackend, CacheLogger, CacheTimeoutError } from '../../src/types';
+import { closeGlobalRedisClient } from '../../src/backends';
 
 // Simple in-memory backend for testing
 class MemoryBackend<T> implements CacheBackend<T> {
@@ -39,6 +40,11 @@ describe('fetchWithCache', () => {
     backend = new MemoryBackend<number>();
     logEvents = [];
     logger = { log: (event) => logEvents.push(event) };
+  });
+
+  afterAll(() => {
+    // Clean up global Redis client to prevent memory leaks
+    closeGlobalRedisClient();
   });
 
   it('returns cached value on HIT and logs HIT', async () => {
@@ -93,8 +99,10 @@ describe('fetchWithCache', () => {
     } catch (error) {
       // Expected to fail due to Redis connection, but the code path should be covered
       expect(error).toBeDefined();
+      // The error should be a connection error or timeout
+      expect(error instanceof Error).toBe(true);
     }
-  });
+  }, 5000); // Reduce timeout to 5 seconds
 
   it('uses temporary handler when backend is provided in options', async () => {
     const customLogger = { log: () => {} };

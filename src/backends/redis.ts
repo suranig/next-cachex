@@ -23,6 +23,19 @@ export class RedisCacheBackend<T = unknown> implements CacheBackend<T> {
     try {
       const value = await this.client.get(fullKey);
       if (value === null) return undefined;
+      
+      // Fast path for simple values
+      if (value === 'null') return null as T;
+      if (value === 'undefined') return undefined;
+      if (value === 'true') return true as T;
+      if (value === 'false') return false as T;
+      
+      // Try to parse as number first (common case)
+      const num = Number(value);
+      if (!isNaN(num) && value.trim() === num.toString()) {
+        return num as T;
+      }
+      
       try {
         return JSON.parse(value) as T;
       } catch (error) {
@@ -50,12 +63,21 @@ export class RedisCacheBackend<T = unknown> implements CacheBackend<T> {
   async set(key: string, value: T, options?: { ttl?: number }): Promise<void> {
     const fullKey = this.prefix ? `${this.prefix}:${key}` : key;
     let str: string;
-    try {
-      str = JSON.stringify(value);
-    } catch (error) {
-      throw new CacheSerializationError(
-        `Failed to stringify value for key "${fullKey}": ${error instanceof Error ? error.message : String(error)}`
-      );
+    
+    // Fast path for simple values
+    if (value === null) str = 'null';
+    else if (value === undefined) str = 'undefined';
+    else if (typeof value === 'boolean') str = value.toString();
+    else if (typeof value === 'number') str = value.toString();
+    else if (typeof value === 'string') str = JSON.stringify(value);
+    else {
+      try {
+        str = JSON.stringify(value);
+      } catch (error) {
+        throw new CacheSerializationError(
+          `Failed to stringify value for key "${fullKey}": ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
     }
     
     try {

@@ -59,6 +59,10 @@ export function createCacheHandler<T = unknown>(
     version = '',
   } = options;
 
+  // Simple in-memory cache for frequently accessed keys (L1 cache)
+  const l1Cache = new Map<string, { value: unknown; expiresAt: number }>();
+  const L1_CACHE_TTL = 1000; // 1 second TTL for L1 cache
+
   /**
    * Get the fully qualified key with prefix and version
    */
@@ -78,10 +82,22 @@ export function createCacheHandler<T = unknown>(
     const fullKey = getFullKey(key);
     const fetchOptions = { ...DEFAULT_FETCH_OPTIONS, ...options };
     
-    // Try to get from cache first
+    // Try to get from L1 cache first
+    const l1Item = l1Cache.get(fullKey);
+    if (l1Item && l1Item.expiresAt > Date.now()) {
+      logger.log({ type: 'HIT', key: fullKey });
+      return l1Item.value as R;
+    }
+
+    // Try to get from backend cache
     try {
       const cached = await backend.get(fullKey) as R | undefined;
       if (cached !== undefined) {
+        // Store in L1 cache for future fast access
+        l1Cache.set(fullKey, {
+          value: cached,
+          expiresAt: Date.now() + L1_CACHE_TTL,
+        });
         logger.log({ type: 'HIT', key: fullKey });
         return cached;
       }
@@ -116,6 +132,12 @@ export function createCacheHandler<T = unknown>(
         // Cache the result
         await backend.set(fullKey, value as unknown as T, { 
           ttl: fetchOptions.ttl,
+        });
+        
+        // Also store in L1 cache
+        l1Cache.set(fullKey, {
+          value,
+          expiresAt: Date.now() + L1_CACHE_TTL,
         });
         
         // If staleTtl is set, store a stale copy with longer TTL
@@ -183,12 +205,14 @@ export function createCacheHandler<T = unknown>(
       // Lock not acquired, wait for the value to be available
       logger.log({ type: 'WAIT', key: lockKey });
       
-      // Simple polling implementation
+      // Exponential backoff polling implementation
       const startTime = Date.now();
+      let pollInterval = 50; // Start with 50ms
+      const maxPollInterval = 500; // Max 500ms between polls
       
       while (Date.now() - startTime < fetchOptions.lockTimeout) {
-        // Sleep for a short time
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        // Sleep with exponential backoff
+        await new Promise((resolve) => setTimeout(resolve, pollInterval));
         
         // Check if the value is now available
         try {
@@ -198,8 +222,15 @@ export function createCacheHandler<T = unknown>(
           }
         } catch (error) {
           // Continue polling even if get fails
-          continue;
+          logger.log({
+            type: 'ERROR',
+            key: fullKey,
+            error: error instanceof Error ? error : new Error(String(error)),
+          });
         }
+        
+        // Exponential backoff: double the interval, but cap it
+        pollInterval = Math.min(pollInterval * 1.5, maxPollInterval);
       }
       
       // Timeout waiting for the value
@@ -208,6 +239,21 @@ export function createCacheHandler<T = unknown>(
       );
     }
   };
+
+  /**
+   * Clean up expired L1 cache entries
+   */
+  const cleanupL1Cache = () => {
+    const now = Date.now();
+    for (const [key, item] of l1Cache.entries()) {
+      if (item.expiresAt <= now) {
+        l1Cache.delete(key);
+      }
+    }
+  };
+
+  // Clean up L1 cache periodically
+  setInterval(cleanupL1Cache, 5000); // Every 5 seconds
 
   return {
     fetch,

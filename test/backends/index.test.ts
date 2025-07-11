@@ -12,6 +12,9 @@ vi.mock('ioredis', () => {
       set: vi.fn(),
       del: vi.fn(),
       scan: vi.fn(),
+      on: vi.fn(),
+      connect: vi.fn().mockResolvedValue(undefined),
+      disconnect: vi.fn(),
     })),
   };
 });

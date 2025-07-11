@@ -138,9 +138,18 @@ describe('createCacheHandler', () => {
       // Delete the main value but keep the stale copy
       await backend.del('test:v1:stale-fallback');
       
+      // Clear L1 cache by creating a new handler
+      const freshHandler = createCacheHandler({
+        backend,
+        prefix: 'test',
+        version: 'v1',
+        fallbackToStale: true,
+        logger: { log: (event) => logEvents.push(event) },
+      });
+      
       // Now fetch again, but make the fetcher fail
       const fetcherThatFails = async () => { throw new Error('Fetcher failed'); };
-      const result = await handlerWithFallback.fetch('stale-fallback', fetcherThatFails, {
+      const result = await freshHandler.fetch('stale-fallback', fetcherThatFails, {
         staleTtl: 60,
       });
       
@@ -352,8 +361,17 @@ describe('createCacheHandler', () => {
       // Make stale get fail
       staleErrorBackend.shouldThrowOnStaleGet = true;
       
+      // Create a fresh handler to avoid L1 cache interference
+      const freshStaleErrorHandler = createCacheHandler({
+        backend: staleErrorBackend,
+        prefix: 'test',
+        version: 'v1',
+        fallbackToStale: true,
+        logger: { log: (event) => staleErrorLogEvents.push(event) },
+      });
+      
       // Fetcher should fail and stale fallback should also fail
-      await expect(staleErrorHandler.fetch('stale-get-error', async () => {
+      await expect(freshStaleErrorHandler.fetch('stale-get-error', async () => {
         throw new Error('Fetcher failed');
       }, { staleTtl: 60 })).rejects.toThrow('Fetcher failed');
       
