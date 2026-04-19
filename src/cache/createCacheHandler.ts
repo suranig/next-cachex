@@ -48,7 +48,9 @@ const DEFAULT_FETCH_OPTIONS = {
  * const data = await cacheHandler.fetch('posts:all', fetchPosts, { ttl: 300 });
  * ```
  */
-export function createCacheHandler<T = unknown>(options: CacheHandlerOptions<T>): CacheHandler<T> {
+export function createCacheHandler<T = unknown>(
+  options: CacheHandlerOptions<T>,
+): CacheHandler<T> {
   const {
     backend,
     prefix = '',
@@ -94,7 +96,7 @@ export function createCacheHandler<T = unknown>(options: CacheHandlerOptions<T>)
 
     // Try to get from backend cache
     try {
-      const cached = (await backend.get(fullKey)) as R | undefined;
+      const cached = await backend.get(fullKey) as R | undefined;
       if (cached !== undefined) {
         // Store in L1 cache for future fast access
         l1Cache.set(fullKey, {
@@ -107,7 +109,7 @@ export function createCacheHandler<T = unknown>(options: CacheHandlerOptions<T>)
     } catch (error) {
       throw new CacheBackendError(
         `Failed to get value from cache: ${error instanceof Error ? error.message : String(error)}`,
-        error instanceof Error ? error : undefined,
+        error instanceof Error ? error : undefined
       );
     }
 
@@ -121,7 +123,7 @@ export function createCacheHandler<T = unknown>(options: CacheHandlerOptions<T>)
     } catch (error) {
       throw new CacheBackendError(
         `Failed to acquire lock: ${error instanceof Error ? error.message : String(error)}`,
-        error instanceof Error ? error : undefined,
+        error instanceof Error ? error : undefined
       );
     }
 
@@ -172,7 +174,7 @@ export function createCacheHandler<T = unknown>(options: CacheHandlerOptions<T>)
         if (fallbackToStale && fetchOptions.staleTtl) {
           const staleKey = `stale:${fullKey}`;
           try {
-            const staleValue = (await backend.get(staleKey)) as R | undefined;
+            const staleValue = await backend.get(staleKey) as R | undefined;
             if (staleValue !== undefined) {
               logger.log({ type: 'HIT', key: `stale:${fullKey}` });
               return staleValue;
@@ -199,7 +201,7 @@ export function createCacheHandler<T = unknown>(options: CacheHandlerOptions<T>)
             key: lockKey,
             error: new CacheBackendError(
               `Failed to release lock: ${unlockError instanceof Error ? unlockError.message : String(unlockError)}`,
-              unlockError instanceof Error ? unlockError : undefined,
+              unlockError instanceof Error ? unlockError : undefined
             ),
           });
         }
@@ -219,7 +221,7 @@ export function createCacheHandler<T = unknown>(options: CacheHandlerOptions<T>)
 
         // Check if the value is now available
         try {
-          const value = (await backend.get(fullKey)) as R | undefined;
+          const value = await backend.get(fullKey) as R | undefined;
           if (value !== undefined) {
             return value;
           }
@@ -237,7 +239,9 @@ export function createCacheHandler<T = unknown>(options: CacheHandlerOptions<T>)
       }
 
       // Timeout waiting for the value
-      throw new CacheTimeoutError(`Timeout waiting for ${key} (${fetchOptions.lockTimeout}ms)`);
+      throw new CacheTimeoutError(
+        `Timeout waiting for ${key} (${fetchOptions.lockTimeout}ms)`
+      );
     }
   };
 
