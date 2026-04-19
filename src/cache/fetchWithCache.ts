@@ -56,7 +56,11 @@ export async function fetchWithCache<T>(
       logger: options.logger,
       prefix: 'next-cachex',
     });
-    return tempHandler.fetch(key, fetcher, options);
+    try {
+      return await tempHandler.fetch(key, fetcher, options);
+    } finally {
+      tempHandler.destroy?.();
+    }
   }
 
   // Use the default handler
