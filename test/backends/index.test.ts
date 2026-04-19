@@ -48,12 +48,12 @@ describe('backends/index', () => {
         del: vi.fn(),
         scan: vi.fn(),
       };
-      
-      const backend = createDefaultBackend({ 
+
+      const backend = createDefaultBackend({
         redisClient: mockClient as unknown as Redis,
-        prefix: 'test' 
+        prefix: 'test',
       });
-      
+
       expect(backend).toBeInstanceOf(RedisCacheBackend);
     });
 
@@ -78,7 +78,7 @@ describe('backends/index', () => {
     it('should reuse global Redis client on subsequent calls', () => {
       const backend1 = createDefaultBackend();
       const backend2 = createDefaultBackend();
-      
+
       expect(backend1).toBeInstanceOf(RedisCacheBackend);
       expect(backend2).toBeInstanceOf(RedisCacheBackend);
     });
@@ -122,4 +122,4 @@ describe('backends/index', () => {
       expect(typeof RedisCacheBackend).toBe('function');
     });
   });
-}); 
+});

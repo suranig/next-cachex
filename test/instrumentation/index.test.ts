@@ -56,10 +56,10 @@ describe('Instrumentation', () => {
 
     it('should set stale cache copies when staleTtl is provided', async () => {
       await registerInitialCache(handler, [
-        { 
-          key: 'stale-item', 
-          value: 'stale-value', 
-          options: { ttl: 60, staleTtl: 3600 } 
+        {
+          key: 'stale-item',
+          value: 'stale-value',
+          options: { ttl: 60, staleTtl: 3600 },
         },
       ]);
 
@@ -69,10 +69,10 @@ describe('Instrumentation', () => {
 
     it('should not set stale cache when staleTtl <= ttl', async () => {
       await registerInitialCache(handler, [
-        { 
-          key: 'no-stale', 
-          value: 'value', 
-          options: { ttl: 100, staleTtl: 100 } 
+        {
+          key: 'no-stale',
+          value: 'value',
+          options: { ttl: 100, staleTtl: 100 },
         },
       ]);
 
@@ -82,21 +82,33 @@ describe('Instrumentation', () => {
 
     it('should do nothing with empty or invalid items', async () => {
       const setSpy = vi.spyOn(backend, 'set');
-      
+
       await registerInitialCache(handler, []);
       expect(setSpy).not.toHaveBeenCalled();
-      
-      await registerInitialCache(handler, null as unknown as Array<{ key: string; value: unknown; options?: { ttl?: number; staleTtl?: number } }>);
+
+      await registerInitialCache(
+        handler,
+        null as unknown as Array<{
+          key: string;
+          value: unknown;
+          options?: { ttl?: number; staleTtl?: number };
+        }>,
+      );
       expect(setSpy).not.toHaveBeenCalled();
-      
-      await registerInitialCache(handler, undefined as unknown as Array<{ key: string; value: unknown; options?: { ttl?: number; staleTtl?: number } }>);
+
+      await registerInitialCache(
+        handler,
+        undefined as unknown as Array<{
+          key: string;
+          value: unknown;
+          options?: { ttl?: number; staleTtl?: number };
+        }>,
+      );
       expect(setSpy).not.toHaveBeenCalled();
     });
 
     it('should handle items without options', async () => {
-      await registerInitialCache(handler, [
-        { key: 'no-options', value: 'simple-value' },
-      ]);
+      await registerInitialCache(handler, [{ key: 'no-options', value: 'simple-value' }]);
 
       expect(await backend.get('test:no-options')).toBe('simple-value');
     });
@@ -124,9 +136,9 @@ describe('Instrumentation', () => {
     it('should clear the cache using backend.clear', async () => {
       backend.set('test:item1', 'value1');
       backend.set('test:item2', 'value2');
-      
+
       await clearCache(handler);
-      
+
       expect(backend.store.size).toBe(0);
     });
 
@@ -137,7 +149,7 @@ describe('Instrumentation', () => {
           set: backend.set.bind(backend),
           del: backend.del.bind(backend),
           lock: backend.lock.bind(backend),
-          unlock: backend.unlock.bind(backend)
+          unlock: backend.unlock.bind(backend),
           // clear method intentionally omitted
         } as CacheBackend<string | { nested: boolean }>,
         fetch: vi.fn(),
@@ -145,8 +157,8 @@ describe('Instrumentation', () => {
       };
 
       await expect(clearCache(handlerWithoutClear)).rejects.toThrow(
-        'Cache backend does not support the clear operation'
+        'Cache backend does not support the clear operation',
       );
     });
   });
-}); 
+});
