@@ -46,20 +46,25 @@ function getGlobalRedisClient(): Redis {
     globalRedisClient.on('error', (error) => {
       // Only log connection errors, don't throw unhandled rejections
       if (process.env.NODE_ENV !== 'test') {
+        // eslint-disable-next-line no-console
         console.warn('Redis connection error:', error.message);
       }
     });
 
     globalRedisClient.on('connect', () => {
       if (process.env.NODE_ENV !== 'test') {
+        // eslint-disable-next-line no-console
         console.log('Redis connected successfully');
       }
     });
 
+    // Capture the client reference to avoid non-null assertion in the closures below
+    const currentClient = globalRedisClient;
+
     // Handle connection promise
-    connectionPromise = globalRedisClient
+    connectionPromise = currentClient
       .connect()
-      .then(() => globalRedisClient!)
+      .then(() => currentClient)
       .catch((error) => {
         // Reset the promise on error so it can be retried
         connectionPromise = null;
@@ -69,8 +74,9 @@ function getGlobalRedisClient(): Redis {
 
         // In test environment, don't throw unhandled rejections
         if (process.env.NODE_ENV === 'test') {
+          // eslint-disable-next-line no-console
           console.warn('Redis connection failed in test environment:', connectionError.message);
-          return globalRedisClient!;
+          return currentClient;
         }
 
         throw connectionError;
