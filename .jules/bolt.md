@@ -1,0 +1,3 @@
+## 2024-05-19 - [Avoid dynamic array allocations on high-throughput paths]
+**Learning:** [In Node.js, dynamically creating arrays, filtering them, and joining them just to concatenate strings (e.g., `[prefix, version, key].filter(Boolean).join(':')`) inside a highly-called function like `getFullKey` adds up to significant CPU overhead and memory allocation pressure. This was ~8x slower than string concatenation in a micro-benchmark.]
+**Action:** [When building keys or strings that have mostly static parts, precompute the static portions during initialization and use simple template literals or string concatenation (`${basePrefix}${key}`) for the dynamic parts on the hot path.]

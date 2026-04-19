@@ -27,23 +27,23 @@ const DEFAULT_FETCH_OPTIONS = {
 
 /**
  * Create a new cache handler with the specified backend and options.
- * 
+ *
  * @param options - Cache handler configuration
  * @returns A configured cache handler
- * 
+ *
  * @example
  * ```ts
  * import { createCacheHandler } from 'next-cachex';
  * import { RedisCacheBackend } from 'next-cachex/backends/redis';
  * import Redis from 'ioredis';
- * 
+ *
  * const redisClient = new Redis();
  * const cacheHandler = createCacheHandler({
  *   backend: new RedisCacheBackend(redisClient),
  *   prefix: 'myapp',
  *   version: 'v1',
  * });
- * 
+ *
  * // Use the handler
  * const data = await cacheHandler.fetch('posts:all', fetchPosts, { ttl: 300 });
  * ```
@@ -63,12 +63,17 @@ export function createCacheHandler<T = unknown>(
   const l1Cache = new Map<string, { value: unknown; expiresAt: number }>();
   const L1_CACHE_TTL = 1000; // 1 second TTL for L1 cache
 
+  // ⚡ Bolt Optimization: Precompute the static base prefix instead of
+  // allocating arrays and calling .filter().join() on every fetch.
+  // This reduces memory pressure and CPU overhead significantly for high-throughput calls.
+  const basePrefixParts = [prefix, version].filter(Boolean);
+  const basePrefix = basePrefixParts.length > 0 ? basePrefixParts.join(':') + ':' : '';
+
   /**
    * Get the fully qualified key with prefix and version
    */
   const getFullKey = (key: string): string => {
-    const parts = [prefix, version, key].filter(Boolean);
-    return parts.join(':');
+    return `${basePrefix}${key}`;
   };
 
   /**
@@ -81,7 +86,7 @@ export function createCacheHandler<T = unknown>(
   ): Promise<R> => {
     const fullKey = getFullKey(key);
     const fetchOptions = { ...DEFAULT_FETCH_OPTIONS, ...options };
-    
+
     // Try to get from L1 cache first
     const l1Item = l1Cache.get(fullKey);
     if (l1Item && l1Item.expiresAt > Date.now()) {
@@ -107,9 +112,9 @@ export function createCacheHandler<T = unknown>(
         error instanceof Error ? error : undefined
       );
     }
-    
+
     logger.log({ type: 'MISS', key: fullKey });
-    
+
     // Try to acquire a lock
     const lockKey = `lock:${fullKey}`;
     let lockAcquired = false;
@@ -121,25 +126,25 @@ export function createCacheHandler<T = unknown>(
         error instanceof Error ? error : undefined
       );
     }
-    
+
     if (lockAcquired) {
       try {
         logger.log({ type: 'LOCK', key: lockKey });
-        
+
         // Execute the fetcher
         const value = await fetcher();
-        
+
         // Cache the result
-        await backend.set(fullKey, value as unknown as T, { 
+        await backend.set(fullKey, value as unknown as T, {
           ttl: fetchOptions.ttl,
         });
-        
+
         // Also store in L1 cache
         l1Cache.set(fullKey, {
           value,
           expiresAt: Date.now() + L1_CACHE_TTL,
         });
-        
+
         // If staleTtl is set, store a stale copy with longer TTL
         if (fallbackToStale && fetchOptions.staleTtl && fetchOptions.staleTtl > fetchOptions.ttl) {
           const staleKey = `stale:${fullKey}`;
@@ -156,15 +161,15 @@ export function createCacheHandler<T = unknown>(
             });
           }
         }
-        
+
         return value;
       } catch (error) {
-        logger.log({ 
-          type: 'ERROR', 
-          key: fullKey, 
+        logger.log({
+          type: 'ERROR',
+          key: fullKey,
           error: error instanceof Error ? error : new Error(String(error)),
         });
-        
+
         // If fallback to stale is enabled, try to get stale value
         if (fallbackToStale && fetchOptions.staleTtl) {
           const staleKey = `stale:${fullKey}`;
@@ -183,7 +188,7 @@ export function createCacheHandler<T = unknown>(
             });
           }
         }
-        
+
         throw error;
       } finally {
         // Always release the lock
@@ -191,9 +196,9 @@ export function createCacheHandler<T = unknown>(
           await backend.unlock(lockKey);
         } catch (unlockError) {
           // Just log unlock errors, don't throw
-          logger.log({ 
-            type: 'ERROR', 
-            key: lockKey, 
+          logger.log({
+            type: 'ERROR',
+            key: lockKey,
             error: new CacheBackendError(
               `Failed to release lock: ${unlockError instanceof Error ? unlockError.message : String(unlockError)}`,
               unlockError instanceof Error ? unlockError : undefined
@@ -204,16 +209,16 @@ export function createCacheHandler<T = unknown>(
     } else {
       // Lock not acquired, wait for the value to be available
       logger.log({ type: 'WAIT', key: lockKey });
-      
+
       // Exponential backoff polling implementation
       const startTime = Date.now();
       let pollInterval = 50; // Start with 50ms
       const maxPollInterval = 500; // Max 500ms between polls
-      
+
       while (Date.now() - startTime < fetchOptions.lockTimeout) {
         // Sleep with exponential backoff
         await new Promise((resolve) => setTimeout(resolve, pollInterval));
-        
+
         // Check if the value is now available
         try {
           const value = await backend.get(fullKey) as R | undefined;
@@ -228,11 +233,11 @@ export function createCacheHandler<T = unknown>(
             error: error instanceof Error ? error : new Error(String(error)),
           });
         }
-        
+
         // Exponential backoff: double the interval, but cap it
         pollInterval = Math.min(pollInterval * 1.5, maxPollInterval);
       }
-      
+
       // Timeout waiting for the value
       throw new CacheTimeoutError(
         `Timeout waiting for ${key} (${fetchOptions.lockTimeout}ms)`
@@ -260,4 +265,4 @@ export function createCacheHandler<T = unknown>(
     backend,
     getFullKey,
   };
-} 
+}
