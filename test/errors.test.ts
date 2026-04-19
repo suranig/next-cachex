@@ -66,4 +66,4 @@ describe('Error Types', () => {
       expect(error instanceof CacheConnectionError).toBe(false);
     }
   });
-}); 
+});
