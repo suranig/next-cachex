@@ -64,11 +64,17 @@ export function createCacheHandler<T = unknown>(
   const L1_CACHE_TTL = 1000; // 1 second TTL for L1 cache
 
   /**
+   * Base prefix string computed once at handler creation
+   * This avoids dynamic array allocation and .filter()/.join() on the hot path
+   */
+  const basePrefixParts = [prefix, version].filter(Boolean);
+  const basePrefix = basePrefixParts.length > 0 ? `${basePrefixParts.join(':')}:` : '';
+
+  /**
    * Get the fully qualified key with prefix and version
    */
   const getFullKey = (key: string): string => {
-    const parts = [prefix, version, key].filter(Boolean);
-    return parts.join(':');
+    return basePrefix ? `${basePrefix}${key}` : key;
   };
 
   /**
