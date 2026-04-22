@@ -121,4 +121,9 @@ export interface CacheHandler<T = unknown> {
    * @returns The prefixed key
    */
   getFullKey(key: string): string;
+
+  /**
+   * Destroy the cache handler, cleaning up any resources such as intervals and L1 cache
+   */
+  destroy?: () => void;
 }

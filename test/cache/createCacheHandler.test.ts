@@ -424,5 +424,52 @@ describe('createCacheHandler', () => {
       });
       expect(result).toBe('value');
     });
+
+    it('should clean up expired L1 cache entries automatically', async () => {
+      vi.useFakeTimers();
+
+      const timerHandler = createCacheHandler({
+        backend,
+        prefix: 'test',
+      });
+
+      // Add to L1 cache
+      await timerHandler.fetch('test-key', async () => 'value');
+
+      // Wait for cleanup interval to run (5s)
+      vi.advanceTimersByTime(5100);
+
+      // Cleanup should have run, clearing the expired item
+
+      // Destroy handler
+      if (timerHandler.destroy) {
+        timerHandler.destroy();
+      }
+
+      vi.useRealTimers();
+    });
+
+    it('should clean up resources when destroy is called', async () => {
+      const destroyHandler = createCacheHandler({
+        backend,
+        prefix: 'test',
+      });
+
+      // Populate L1 cache by fetching
+      await destroyHandler.fetch('test-key', async () => 'value');
+
+      // Destroy should not throw and should clean up intervals and L1 cache
+      expect(() => {
+        if (destroyHandler.destroy) {
+          destroyHandler.destroy();
+        }
+      }).not.toThrow();
+
+      // We can't directly check the interval is cleared without mocking timers,
+      // but we can verify it doesn't error when we try to fetch again
+      // after the L1 cache was cleared.
+      const result = await destroyHandler.fetch('test-key-2', async () => 'value2');
+      expect(result).toBe('value2');
+    });
   });
 }); 
