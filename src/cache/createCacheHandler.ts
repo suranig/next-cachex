@@ -63,12 +63,14 @@ export function createCacheHandler<T = unknown>(
   const l1Cache = new Map<string, { value: unknown; expiresAt: number }>();
   const L1_CACHE_TTL = 1000; // 1 second TTL for L1 cache
 
+  // Precompute the static part of the key to avoid array allocation, filter, and join on every fetch
+  const basePrefix = prefix && version ? `${prefix}:${version}:` : prefix ? `${prefix}:` : version ? `${version}:` : '';
+
   /**
    * Get the fully qualified key with prefix and version
    */
   const getFullKey = (key: string): string => {
-    const parts = [prefix, version, key].filter(Boolean);
-    return parts.join(':');
+    return `${basePrefix}${key}`;
   };
 
   /**
@@ -253,11 +255,20 @@ export function createCacheHandler<T = unknown>(
   };
 
   // Clean up L1 cache periodically
-  setInterval(cleanupL1Cache, 5000); // Every 5 seconds
+  const cleanupInterval = setInterval(cleanupL1Cache, 5000); // Every 5 seconds
+
+  /**
+   * Clean up resources when the handler is destroyed
+   */
+  const destroy = () => {
+    clearInterval(cleanupInterval);
+    l1Cache.clear();
+  };
 
   return {
     fetch,
     backend,
     getFullKey,
+    destroy,
   };
 } 
