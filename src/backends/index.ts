@@ -8,18 +8,18 @@ let connectionPromise: Promise<Redis> | null = null;
 
 /**
  * Create a default Redis backend, reusing a global client if available.
- * 
+ *
  * @param options - Options for creating the Redis backend
  * @returns A Redis cache backend instance
  */
 export function createDefaultBackend<T = unknown>(
-  options: { prefix?: string; redisClient?: Redis } = {}
+  options: { prefix?: string; redisClient?: Redis } = {},
 ): CacheBackend<T> {
   const { prefix = 'next-cachex', redisClient } = options;
-  
+
   // Use provided client or create/reuse global client
   const client = redisClient || getGlobalRedisClient();
-  
+
   return new RedisCacheBackend<T>(client, prefix);
 }
 
@@ -46,32 +46,38 @@ function getGlobalRedisClient(): Redis {
     globalRedisClient.on('error', (error) => {
       // Only log connection errors, don't throw unhandled rejections
       if (process.env.NODE_ENV !== 'test') {
+        // eslint-disable-next-line no-console
         console.warn('Redis connection error:', error.message);
       }
     });
 
     globalRedisClient.on('connect', () => {
       if (process.env.NODE_ENV !== 'test') {
+        // eslint-disable-next-line no-console
         console.log('Redis connected successfully');
       }
     });
 
     // Handle connection promise
-    connectionPromise = globalRedisClient.connect().then(() => globalRedisClient!).catch((error) => {
-      // Reset the promise on error so it can be retried
-      connectionPromise = null;
-      const connectionError = new CacheConnectionError(
-        `Failed to connect to Redis: ${error instanceof Error ? error.message : String(error)}`
-      );
-      
-      // In test environment, don't throw unhandled rejections
-      if (process.env.NODE_ENV === 'test') {
-        console.warn('Redis connection failed in test environment:', connectionError.message);
-        return globalRedisClient!;
-      }
-      
-      throw connectionError;
-    });
+    connectionPromise = globalRedisClient
+      .connect()
+      .then(() => globalRedisClient as Redis)
+      .catch((error) => {
+        // Reset the promise on error so it can be retried
+        connectionPromise = null;
+        const connectionError = new CacheConnectionError(
+          `Failed to connect to Redis: ${error instanceof Error ? error.message : String(error)}`,
+        );
+
+        // In test environment, don't throw unhandled rejections
+        if (process.env.NODE_ENV === 'test') {
+          // eslint-disable-next-line no-console
+          console.warn('Redis connection failed in test environment:', connectionError.message);
+          return globalRedisClient as Redis;
+        }
+
+        throw connectionError;
+      });
   }
   return globalRedisClient;
 }
@@ -96,4 +102,4 @@ export function closeGlobalRedisClient(): void {
 }
 
 export { RedisCacheBackend } from './redis';
-export { MemoryCacheBackend } from './memory'; 
+export { MemoryCacheBackend } from './memory';

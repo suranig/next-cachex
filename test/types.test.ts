@@ -11,7 +11,7 @@ describe('Types', () => {
   it('should export all required types and interfaces', () => {
     // This test ensures all types are properly exported
     // TypeScript will catch any missing exports at compile time
-    
+
     // Test that we can create type-safe objects
     const mockBackend: CacheBackend<string> = {
       get: async () => undefined,
@@ -58,10 +58,10 @@ describe('Types', () => {
     const missEvent: CacheLogEvent = { type: 'MISS', key: 'key2' };
     const lockEvent: CacheLogEvent = { type: 'LOCK', key: 'key3' };
     const waitEvent: CacheLogEvent = { type: 'WAIT', key: 'key4' };
-    const errorEvent: CacheLogEvent = { 
-      type: 'ERROR', 
-      key: 'key5', 
-      error: new Error('test error') 
+    const errorEvent: CacheLogEvent = {
+      type: 'ERROR',
+      key: 'key5',
+      error: new Error('test error'),
     };
 
     expect(hitEvent.type).toBe('HIT');
@@ -89,4 +89,4 @@ describe('Types', () => {
     expect(minimalOptions.backend).toBeDefined();
     expect(minimalFetchOptions).toBeDefined();
   });
-}); 
+});

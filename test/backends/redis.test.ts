@@ -15,11 +15,11 @@ describe('RedisCacheBackend', () => {
   let backend: RedisCacheBackend<unknown>;
   let backendWithPrefix: RedisCacheBackend<unknown>;
 
-      beforeEach(() => {
-      vi.clearAllMocks();
-      backend = new RedisCacheBackend(mockRedisClient as unknown as Redis);
-      backendWithPrefix = new RedisCacheBackend(mockRedisClient as unknown as Redis, 'test');
-    });
+  beforeEach(() => {
+    vi.clearAllMocks();
+    backend = new RedisCacheBackend(mockRedisClient as unknown as Redis);
+    backendWithPrefix = new RedisCacheBackend(mockRedisClient as unknown as Redis, 'test');
+  });
 
   describe('constructor', () => {
     it('should create backend without prefix', () => {
@@ -76,7 +76,7 @@ describe('RedisCacheBackend', () => {
 
     it('should throw CacheSerializationError when JSON.parse fails', async () => {
       mockRedisClient.get.mockResolvedValue('invalid-json');
-      
+
       // Mock JSON.parse to throw an error
       const originalParse = JSON.parse;
       JSON.parse = vi.fn().mockImplementation(() => {
@@ -120,7 +120,7 @@ describe('RedisCacheBackend', () => {
         'test:test-key',
         JSON.stringify(testValue),
         'EX',
-        300
+        300,
       );
     });
 
@@ -129,7 +129,9 @@ describe('RedisCacheBackend', () => {
       (circularValue as Record<string, unknown>).self = circularValue;
 
       await expect(backend.set('test-key', circularValue)).rejects.toThrow(CacheSerializationError);
-      await expect(backend.set('test-key', circularValue)).rejects.toThrow('Failed to stringify value');
+      await expect(backend.set('test-key', circularValue)).rejects.toThrow(
+        'Failed to stringify value',
+      );
     });
 
     it('should throw CacheBackendError for Redis errors', async () => {
@@ -270,7 +272,9 @@ describe('RedisCacheBackend', () => {
   describe('clear', () => {
     it('should throw CacheConfigError when no prefix is set', async () => {
       await expect(backend.clear()).rejects.toThrow(CacheConfigError);
-      await expect(backend.clear()).rejects.toThrow('Refusing to clear all keys: prefix is required');
+      await expect(backend.clear()).rejects.toThrow(
+        'Refusing to clear all keys: prefix is required',
+      );
     });
 
     it('should clear all keys with prefix successfully', async () => {
@@ -288,9 +292,7 @@ describe('RedisCacheBackend', () => {
     });
 
     it('should handle empty scan results', async () => {
-      mockRedisClient.scan
-        .mockResolvedValueOnce(['10', []])
-        .mockResolvedValueOnce(['0', []]);
+      mockRedisClient.scan.mockResolvedValueOnce(['10', []]).mockResolvedValueOnce(['0', []]);
 
       await backendWithPrefix.clear();
 
@@ -312,4 +314,4 @@ describe('RedisCacheBackend', () => {
       await expect(backendWithPrefix.clear()).rejects.toThrow('string error');
     });
   });
-}); 
+});

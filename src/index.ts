@@ -1,6 +1,6 @@
 /**
  * next-cachex - A distributed, shared cache handler for Next.js
- * 
+ *
  * @packageDocumentation
  */
 

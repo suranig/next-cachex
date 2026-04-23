@@ -28,4 +28,4 @@ describe('main exports', () => {
     expect(registerInitialCache).toBeDefined();
     expect(clearCache).toBeDefined();
   });
-}); 
+});

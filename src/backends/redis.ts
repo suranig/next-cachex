@@ -1,4 +1,9 @@
-import { CacheBackend, CacheSerializationError, CacheBackendError, CacheConfigError } from '../types';
+import {
+  CacheBackend,
+  CacheSerializationError,
+  CacheBackendError,
+  CacheConfigError,
+} from '../types';
 import type Redis from 'ioredis';
 
 /**
@@ -23,24 +28,24 @@ export class RedisCacheBackend<T = unknown> implements CacheBackend<T> {
     try {
       const value = await this.client.get(fullKey);
       if (value === null) return undefined;
-      
+
       // Fast path for simple values
       if (value === 'null') return null as T;
       if (value === 'undefined') return undefined;
       if (value === 'true') return true as T;
       if (value === 'false') return false as T;
-      
+
       // Try to parse as number first (common case)
       const num = Number(value);
       if (!isNaN(num) && value.trim() === num.toString()) {
         return num as T;
       }
-      
+
       try {
         return JSON.parse(value) as T;
       } catch (error) {
         throw new CacheSerializationError(
-          `Failed to parse cached value for key "${fullKey}": ${error instanceof Error ? error.message : String(error)}`
+          `Failed to parse cached value for key "${fullKey}": ${error instanceof Error ? error.message : String(error)}`,
         );
       }
     } catch (error) {
@@ -49,7 +54,7 @@ export class RedisCacheBackend<T = unknown> implements CacheBackend<T> {
       }
       throw new CacheBackendError(
         `Redis get operation failed for key "${fullKey}": ${error instanceof Error ? error.message : String(error)}`,
-        error instanceof Error ? error : undefined
+        error instanceof Error ? error : undefined,
       );
     }
   }
@@ -63,7 +68,7 @@ export class RedisCacheBackend<T = unknown> implements CacheBackend<T> {
   async set(key: string, value: T, options?: { ttl?: number }): Promise<void> {
     const fullKey = this.prefix ? `${this.prefix}:${key}` : key;
     let str: string;
-    
+
     // Fast path for simple values
     if (value === null) str = 'null';
     else if (value === undefined) str = 'undefined';
@@ -75,11 +80,11 @@ export class RedisCacheBackend<T = unknown> implements CacheBackend<T> {
         str = JSON.stringify(value);
       } catch (error) {
         throw new CacheSerializationError(
-          `Failed to stringify value for key "${fullKey}": ${error instanceof Error ? error.message : String(error)}`
+          `Failed to stringify value for key "${fullKey}": ${error instanceof Error ? error.message : String(error)}`,
         );
       }
     }
-    
+
     try {
       if (options?.ttl) {
         await this.client.set(fullKey, str, 'EX', options.ttl);
@@ -89,7 +94,7 @@ export class RedisCacheBackend<T = unknown> implements CacheBackend<T> {
     } catch (error) {
       throw new CacheBackendError(
         `Redis set operation failed for key "${fullKey}": ${error instanceof Error ? error.message : String(error)}`,
-        error instanceof Error ? error : undefined
+        error instanceof Error ? error : undefined,
       );
     }
   }
@@ -105,7 +110,7 @@ export class RedisCacheBackend<T = unknown> implements CacheBackend<T> {
     } catch (error) {
       throw new CacheBackendError(
         `Redis delete operation failed for key "${fullKey}": ${error instanceof Error ? error.message : String(error)}`,
-        error instanceof Error ? error : undefined
+        error instanceof Error ? error : undefined,
       );
     }
   }
@@ -125,7 +130,7 @@ export class RedisCacheBackend<T = unknown> implements CacheBackend<T> {
     } catch (error) {
       throw new CacheBackendError(
         `Redis lock operation failed for key "${fullKey}": ${error instanceof Error ? error.message : String(error)}`,
-        error instanceof Error ? error : undefined
+        error instanceof Error ? error : undefined,
       );
     }
   }
@@ -141,7 +146,7 @@ export class RedisCacheBackend<T = unknown> implements CacheBackend<T> {
     } catch (error) {
       throw new CacheBackendError(
         `Redis unlock operation failed for key "${fullKey}": ${error instanceof Error ? error.message : String(error)}`,
-        error instanceof Error ? error : undefined
+        error instanceof Error ? error : undefined,
       );
     }
   }
@@ -154,7 +159,7 @@ export class RedisCacheBackend<T = unknown> implements CacheBackend<T> {
     if (!this.prefix) {
       throw new CacheConfigError('Refusing to clear all keys: prefix is required for safety.');
     }
-    
+
     const pattern = `${this.prefix}:*`;
     let cursor = '0';
     try {
@@ -168,7 +173,7 @@ export class RedisCacheBackend<T = unknown> implements CacheBackend<T> {
     } catch (error) {
       throw new CacheBackendError(
         `Redis clear operation failed for pattern "${pattern}": ${error instanceof Error ? error.message : String(error)}`,
-        error instanceof Error ? error : undefined
+        error instanceof Error ? error : undefined,
       );
     }
   }

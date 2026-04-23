@@ -109,16 +109,21 @@ export interface CacheHandler<T = unknown> {
    * @returns The cached or fetched value
    */
   fetch<R = T>(key: string, fetcher: () => Promise<R>, options?: CacheFetchOptions): Promise<R>;
-  
+
   /**
    * The backend instance used by this handler
    */
   backend: CacheBackend<T>;
-  
+
   /**
    * Get the fully qualified key with prefix and version
    * @param key - The base key to prefix
    * @returns The prefixed key
    */
   getFullKey(key: string): string;
+
+  /**
+   * Clean up resources used by the cache handler, such as intervals and in-memory caches.
+   */
+  destroy?: () => void;
 }

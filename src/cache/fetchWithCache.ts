@@ -1,16 +1,16 @@
 /**
  * Fetch data from cache or execute the fetcher function.
  * This is a convenience wrapper around the default cache handler.
- * 
+ *
  * @param key - Cache key
  * @param fetcher - Function to execute on cache miss
  * @param options - Cache options (ttl, lockTimeout, etc.)
  * @returns The cached or fetched value
- * 
+ *
  * @example
  * ```ts
  * import { fetchWithCache } from 'next-cachex';
- * 
+ *
  * const data = await fetchWithCache(
  *   'posts:all',
  *   () => fetch('https://api.example.com/posts').then(r => r.json()),
@@ -56,9 +56,13 @@ export async function fetchWithCache<T>(
       logger: options.logger,
       prefix: 'next-cachex',
     });
-    return tempHandler.fetch(key, fetcher, options);
+    try {
+      return await tempHandler.fetch(key, fetcher, options);
+    } finally {
+      tempHandler.destroy?.();
+    }
   }
-  
+
   // Use the default handler
   return getDefaultHandler().fetch(key, fetcher, options);
 }
