@@ -61,12 +61,16 @@ export function createCacheHandler<T = unknown>(options: CacheHandlerOptions<T>)
   const l1Cache = new Map<string, { value: unknown; expiresAt: number }>();
   const L1_CACHE_TTL = 1000; // 1 second TTL for L1 cache
 
+  // Precompute base prefix to avoid array allocations, .filter(), and .join() on every fetch (hot path)
+  const baseParts = [prefix, version].filter(Boolean);
+  const basePrefix = baseParts.length > 0 ? `${baseParts.join(':')}:` : '';
+
   /**
    * Get the fully qualified key with prefix and version
    */
   const getFullKey = (key: string): string => {
-    const parts = [prefix, version, key].filter(Boolean);
-    return parts.join(':');
+    // Check for empty key edge case to match original .filter(Boolean) behavior
+    return key ? `${basePrefix}${key}` : baseParts.join(':');
   };
 
   /**
