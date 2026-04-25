@@ -60,13 +60,17 @@ export function createCacheHandler<T = unknown>(options: CacheHandlerOptions<T>)
   // Simple in-memory cache for frequently accessed keys (L1 cache)
   const l1Cache = new Map<string, { value: unknown; expiresAt: number }>();
   const L1_CACHE_TTL = 1000; // 1 second TTL for L1 cache
+  const L1_CACHE_CLEANUP_INTERVAL = 5000; // 5 seconds cleanup interval
+
+  // Precompute base prefix string to avoid array allocations in hot path
+  const basePrefix = [prefix, version].filter(Boolean).join(':');
+  const keyPrefix = basePrefix ? `${basePrefix}:` : '';
 
   /**
    * Get the fully qualified key with prefix and version
    */
   const getFullKey = (key: string): string => {
-    const parts = [prefix, version, key].filter(Boolean);
-    return parts.join(':');
+    return `${keyPrefix}${key}`;
   };
 
   /**
@@ -249,7 +253,7 @@ export function createCacheHandler<T = unknown>(options: CacheHandlerOptions<T>)
   };
 
   // Clean up L1 cache periodically
-  const cleanupInterval = setInterval(cleanupL1Cache, 5000); // Every 5 seconds
+  const cleanupInterval = setInterval(cleanupL1Cache, L1_CACHE_CLEANUP_INTERVAL);
   if (cleanupInterval.unref) {
     cleanupInterval.unref();
   }
