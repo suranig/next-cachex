@@ -411,6 +411,56 @@ describe('createCacheHandler', () => {
     });
   });
 
+  describe('L1 cache eviction', () => {
+    it('should evict oldest item when MAX_L1_CACHE_SIZE is exceeded', async () => {
+      const evictionHandler = createCacheHandler({ backend });
+
+      // Fill cache to max limit (1000 items)
+      const MAX_L1_CACHE_SIZE = 1000;
+      for (let i = 0; i < MAX_L1_CACHE_SIZE; i++) {
+        await evictionHandler.fetch(`key-${i}`, async () => `value-${i}`);
+      }
+
+      // At this point, key-0 should still be in L1 cache (we can test it by seeing if a fetch avoids lock)
+      // but testing internal cache hit/miss is easier with logging
+      let hitLogged = false;
+      let missLogged = false;
+      const testLogger = {
+        log: (event: CacheLogEvent) => {
+          if (event.type === 'HIT' && event.key === 'key-0') hitLogged = true;
+          if (event.type === 'MISS' && event.key === 'key-0') missLogged = true;
+        }
+      };
+
+      const loggerHandler = createCacheHandler({ backend, logger: testLogger });
+
+      // Re-populate L1 cache for the new handler
+      for (let i = 0; i < MAX_L1_CACHE_SIZE; i++) {
+        await loggerHandler.fetch(`key-${i}`, async () => `value-${i}`);
+      }
+
+      // Reset hitLogged before testing L1 cache HIT
+      hitLogged = false;
+
+      // Fetch key-0, should be a HIT from L1 cache
+      await loggerHandler.fetch('key-0', async () => 'value-0');
+      expect(hitLogged).toBe(true);
+
+      hitLogged = false;
+      missLogged = false;
+
+      // Add one more item to trigger eviction of key-0
+      await loggerHandler.fetch(`key-${MAX_L1_CACHE_SIZE}`, async () => `value-${MAX_L1_CACHE_SIZE}`);
+
+      // Delete key-0 from backend to ensure L1 miss causes a full MISS
+      await backend.del('key-0');
+
+      // Fetch key-0 again, should be a MISS because it was evicted from L1 and deleted from backend
+      await loggerHandler.fetch('key-0', async () => 'value-0');
+      expect(missLogged).toBe(true);
+    });
+  });
+
   describe('edge cases', () => {
     it('should handle empty prefix and version', () => {
       const plainHandler = createCacheHandler({
