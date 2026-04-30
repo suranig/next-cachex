@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createCacheHandler } from '../../src/cache/createCacheHandler';
 import { CacheBackend, CacheHandler, CacheTimeoutError, CacheLogEvent } from '../../src/types';
 
@@ -397,7 +397,7 @@ describe('createCacheHandler', () => {
     });
   });
 
-  describe('destroy method', () => {
+  describe('destroy method and l1Cache behavior', () => {
     it('should expose destroy method which clears the interval', () => {
       const tempHandler = createCacheHandler({ backend });
       expect(typeof tempHandler.destroy).toBe('function');
@@ -408,6 +408,34 @@ describe('createCacheHandler', () => {
           tempHandler.destroy();
         }
       }).not.toThrow();
+    });
+
+    it('should limit L1 cache size and evict oldest elements first', async () => {
+      const tempHandler = createCacheHandler({ backend });
+
+      // We will trigger 1005 requests. Since MAX_L1_CACHE_SIZE is 1000,
+      // the first 5 should be evicted from the L1 cache.
+      for (let i = 0; i < 1005; i++) {
+        await tempHandler.fetch(`key-${i}`, async () => i);
+      }
+
+      // Directly check the backend to verify that it had to hit the backend
+      // But we can't easily mock L1 cache hits vs backend hits without spying on backend.get
+      const backendSpy = vi.spyOn(backend, 'get');
+
+      // Key 0 should be evicted, so fetching it again will hit the backend (and the lock/fetch logic, but it's already in the backend)
+      await tempHandler.fetch('key-0', async () => -1);
+      expect(backendSpy).toHaveBeenCalledWith('key-0');
+
+      backendSpy.mockClear();
+
+      // Key 1004 should be in L1 cache, so fetching it again should NOT hit the backend
+      await tempHandler.fetch('key-1004', async () => -1);
+      expect(backendSpy).not.toHaveBeenCalled();
+
+      if (tempHandler.destroy) {
+        tempHandler.destroy();
+      }
     });
   });
 

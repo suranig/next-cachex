@@ -60,6 +60,23 @@ export function createCacheHandler<T = unknown>(options: CacheHandlerOptions<T>)
   // Simple in-memory cache for frequently accessed keys (L1 cache)
   const l1Cache = new Map<string, { value: unknown; expiresAt: number }>();
   const L1_CACHE_TTL = 1000; // 1 second TTL for L1 cache
+  const MAX_L1_CACHE_SIZE = 1000; // Max items to prevent memory exhaustion
+
+  /**
+   * Safely add to L1 cache enforcing size limit with FIFO eviction
+   */
+  const setL1Cache = (key: string, value: unknown) => {
+    if (l1Cache.size >= MAX_L1_CACHE_SIZE && !l1Cache.has(key)) {
+      const oldestKey = l1Cache.keys().next().value;
+      if (oldestKey !== undefined) {
+        l1Cache.delete(oldestKey);
+      }
+    }
+    l1Cache.set(key, {
+      value,
+      expiresAt: Date.now() + L1_CACHE_TTL,
+    });
+  };
 
   // Precompute prefix string for faster key generation
   const keyPrefix = [prefix, version].filter(Boolean).join(':');
@@ -95,10 +112,7 @@ export function createCacheHandler<T = unknown>(options: CacheHandlerOptions<T>)
       const cached = (await backend.get(fullKey)) as R | undefined;
       if (cached !== undefined) {
         // Store in L1 cache for future fast access
-        l1Cache.set(fullKey, {
-          value: cached,
-          expiresAt: Date.now() + L1_CACHE_TTL,
-        });
+        setL1Cache(fullKey, cached);
         logger.log({ type: 'HIT', key: fullKey });
         return cached;
       }
@@ -136,10 +150,7 @@ export function createCacheHandler<T = unknown>(options: CacheHandlerOptions<T>)
         });
 
         // Also store in L1 cache
-        l1Cache.set(fullKey, {
-          value,
-          expiresAt: Date.now() + L1_CACHE_TTL,
-        });
+        setL1Cache(fullKey, value);
 
         // If staleTtl is set, store a stale copy with longer TTL
         if (fallbackToStale && fetchOptions.staleTtl && fetchOptions.staleTtl > fetchOptions.ttl) {
