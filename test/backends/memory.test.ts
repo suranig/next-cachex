@@ -77,19 +77,4 @@ describe('MemoryCacheBackend', () => {
     expect(await backend.get('key2')).toBeUndefined();
     expect(await backend.lock('lock1', 1)).toBe(true); // Lock should be cleared
   });
-
-  it('should cleanup expired entries', async () => {
-    await backend.set('expired-key', 42, { ttl: 0.1 });
-    await backend.lock('expired-lock', 0.1);
-
-    // Wait for expiration
-    await new Promise((resolve) => setTimeout(resolve, 150));
-
-    // Manually trigger cleanup
-    backend.cleanup();
-
-    // Should not be able to acquire the expired lock
-    const lockAcquired = await backend.lock('expired-lock', 1);
-    expect(lockAcquired).toBe(true);
-  });
 });

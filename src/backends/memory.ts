@@ -80,25 +80,4 @@ export class MemoryCacheBackend<T = unknown> implements CacheBackend<T> {
     this.store.clear();
     this.locks.clear();
   }
-
-  /**
-   * Clean up expired entries (useful for memory management).
-   */
-  cleanup(): void {
-    const now = Date.now();
-
-    // Clean up expired cache entries
-    for (const [key, item] of this.store.entries()) {
-      if (item.expiresAt && item.expiresAt <= now) {
-        this.store.delete(key);
-      }
-    }
-
-    // Clean up expired locks
-    for (const [key, lock] of this.locks.entries()) {
-      if (lock.expiresAt <= now) {
-        this.locks.delete(key);
-      }
-    }
-  }
 }
