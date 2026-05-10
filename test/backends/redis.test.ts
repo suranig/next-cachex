@@ -60,6 +60,36 @@ describe('RedisCacheBackend', () => {
       expect(result).toBeUndefined();
     });
 
+    it('should handle string "null" as null', async () => {
+      mockRedisClient.get.mockResolvedValue('null');
+      const result = await backend.get('test-key');
+      expect(result).toBeNull();
+    });
+
+    it('should handle string "undefined" as undefined', async () => {
+      mockRedisClient.get.mockResolvedValue('undefined');
+      const result = await backend.get('test-key');
+      expect(result).toBeUndefined();
+    });
+
+    it('should handle string "true" as boolean true', async () => {
+      mockRedisClient.get.mockResolvedValue('true');
+      const result = await backend.get('test-key');
+      expect(result).toBe(true);
+    });
+
+    it('should handle string "false" as boolean false', async () => {
+      mockRedisClient.get.mockResolvedValue('false');
+      const result = await backend.get('test-key');
+      expect(result).toBe(false);
+    });
+
+    it('should handle numeric strings as numbers', async () => {
+      mockRedisClient.get.mockResolvedValue('123.45');
+      const result = await backend.get('test-key');
+      expect(result).toBe(123.45);
+    });
+
     it('should throw CacheSerializationError for invalid JSON', async () => {
       mockRedisClient.get.mockResolvedValue('invalid-json');
 
@@ -122,6 +152,36 @@ describe('RedisCacheBackend', () => {
         'EX',
         300,
       );
+    });
+
+    it('should set null as "null"', async () => {
+      mockRedisClient.set.mockResolvedValue('OK');
+      await backend.set('test-key', null as any);
+      expect(mockRedisClient.set).toHaveBeenCalledWith('test-key', 'null');
+    });
+
+    it('should set undefined as "undefined"', async () => {
+      mockRedisClient.set.mockResolvedValue('OK');
+      await backend.set('test-key', undefined as any);
+      expect(mockRedisClient.set).toHaveBeenCalledWith('test-key', 'undefined');
+    });
+
+    it('should set boolean true as "true"', async () => {
+      mockRedisClient.set.mockResolvedValue('OK');
+      await backend.set('test-key', true as any);
+      expect(mockRedisClient.set).toHaveBeenCalledWith('test-key', 'true');
+    });
+
+    it('should set boolean false as "false"', async () => {
+      mockRedisClient.set.mockResolvedValue('OK');
+      await backend.set('test-key', false as any);
+      expect(mockRedisClient.set).toHaveBeenCalledWith('test-key', 'false');
+    });
+
+    it('should set number as string', async () => {
+      mockRedisClient.set.mockResolvedValue('OK');
+      await backend.set('test-key', 123.45 as any);
+      expect(mockRedisClient.set).toHaveBeenCalledWith('test-key', '123.45');
     });
 
     it('should throw CacheSerializationError for unstringifiable values', async () => {
