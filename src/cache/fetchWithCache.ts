@@ -34,6 +34,13 @@ export function getDefaultHandler() {
         prefix: 'next-cachex',
       });
     } catch (error) {
+      if (process.env.NODE_ENV !== 'test') {
+        // eslint-disable-next-line no-console
+        console.warn(
+          'Failed to initialize Redis backend, falling back to memory:',
+          error instanceof Error ? error.message : String(error),
+        );
+      }
       // Fallback to memory backend if Redis is not available (e.g., in tests)
       defaultHandler = createCacheHandler({
         backend: new MemoryCacheBackend(),
