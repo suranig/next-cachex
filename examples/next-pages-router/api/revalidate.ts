@@ -3,7 +3,7 @@
 // This example demonstrates an API route for on-demand cache revalidation
 
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { createCacheHandler, RedisCacheBackend, clearCache } from 'next-cachex';
+import { createCacheHandler, RedisCacheBackend, clearCache, timingSafeStringEqual } from 'next-cachex';
 import Redis from 'ioredis';
 
 // Create a Redis client (typically done once in a shared file)
@@ -57,7 +57,12 @@ export default async function handler(
     if (action === 'clear_all') {
       // Verify API key for security
       const apiKey = req.headers['x-api-key'];
-      if (apiKey !== process.env.CACHE_REVALIDATE_KEY) {
+      const isAuthorized = timingSafeStringEqual(
+        typeof apiKey === 'string' ? apiKey : '',
+        process.env.CACHE_REVALIDATE_KEY || ''
+      );
+
+      if (!isAuthorized) {
         return res.status(401).json({ 
           revalidated: false, 
           error: 'Unauthorized' 
