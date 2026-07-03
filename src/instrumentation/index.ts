@@ -4,6 +4,7 @@
  * @packageDocumentation
  */
 
+import { timingSafeEqual, createHash } from 'crypto';
 import { CacheHandler } from '../types';
 
 /**
@@ -71,10 +72,16 @@ export async function registerInitialCache<T>(
  * @example
  * ```ts
  * // In your deployment script or API route
- * import { cacheHandler, clearCache } from 'next-cachex';
+ * import { cacheHandler, clearCache, timingSafeStringEqual } from 'next-cachex';
  *
  * export default async function handler(req, res) {
- *   if (req.method === 'POST' && req.headers['x-api-key'] === process.env.CACHE_CLEAR_KEY) {
+ *   const apiKey = req.headers['x-api-key'];
+ *   const isAuthorized = timingSafeStringEqual(
+ *     typeof apiKey === 'string' ? apiKey : '',
+ *     process.env.CACHE_CLEAR_KEY || ''
+ *   );
+ *
+ *   if (req.method === 'POST' && isAuthorized) {
  *     await clearCache(cacheHandler);
  *     res.status(200).json({ success: true });
  *   } else {
@@ -89,4 +96,23 @@ export async function clearCache<T>(handler: CacheHandler<T>): Promise<void> {
   } else {
     throw new Error('Cache backend does not support the clear operation');
   }
+}
+
+/**
+ * Constant-time string comparison to prevent timing attacks.
+ * Uses SHA-256 hashing to compare strings of different lengths securely.
+ *
+ * @param a - First string to compare
+ * @param b - Second string to compare
+ * @returns true if strings match, false otherwise
+ */
+export function timingSafeStringEqual(a: string, b: string): boolean {
+  if (typeof a !== 'string' || typeof b !== 'string') {
+    return false;
+  }
+
+  const aHash = createHash('sha256').update(a).digest();
+  const bHash = createHash('sha256').update(b).digest();
+
+  return timingSafeEqual(aHash, bHash);
 }
